@@ -1,8 +1,6 @@
-// Juez de Algoria: compila y ejecuta Python / C++ / Java contra una lista de tests.
-//
-// Con JUDGE0_URL definida (producción) delega en Judge0, que aísla cada envío (ver judge0.ts).
-// Sin ella usa los compiladores locales. AVISO: el modo local ejecuta código arbitrario
-// directamente en la máquina; solo es apto para desarrollo.
+// Juez de Algoria: compila y ejecuta Python / C++ / Java contra una lista de tests usando los
+// compiladores locales. AVISO: ejecuta código arbitrario directamente en la máquina; es solo para
+// uso local, no lo expongas a otras personas ni a internet.
 //
 // Decisiones (documentadas también en el informe del agente):
 // - CE: `results` contiene TODOS los tests con verdict 'CE' (timeMs 0, output ''), así `total` es coherente;
@@ -17,7 +15,6 @@ import { promises as fs, realpathSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { Language, RunResponse, TestCase, TestResult, Verdict } from '@algoria/shared';
-import { judge0ConfigFromEnv, judge0Status, judgeWithJudge0 } from './judge0';
 
 export interface JudgeInput {
   language: Language;
@@ -393,9 +390,6 @@ function compileErrorResponse(tests: TestCase[], message: string): RunResponse {
 
 /** Compila (si hace falta) y ejecuta `code` contra cada test. Nunca lanza por errores del código del usuario. */
 export async function judge(input: JudgeInput): Promise<RunResponse> {
-  // En producción (JUDGE0_URL definida) el código se ejecuta aislado en Judge0.
-  const remote = judge0ConfigFromEnv();
-  if (remote) return judgeWithJudge0(remote, input);
   return withSlot(() => judgeNow(input));
 }
 
@@ -493,8 +487,6 @@ async function probe(tool: string, args: string[]): Promise<CompilerStatus> {
 }
 
 export async function detectCompilers(): Promise<Record<Language, CompilerStatus>> {
-  const remote = judge0ConfigFromEnv();
-  if (remote) return judge0Status(remote);
   const [python, cpp, javac, java] = await Promise.all([
     probe(bin('python'), ['--version']),
     probe(bin('gxx'), ['--version']),

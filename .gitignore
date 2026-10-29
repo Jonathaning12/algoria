@@ -1,6 +1,5 @@
 node_modules/
 dist/
-.vercel/
 # Contenido público generado (sin soluciones): npm run gen:public -w @algoria/content
 packages/content/generated/
 .vite/

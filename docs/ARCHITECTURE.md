@@ -36,14 +36,15 @@ Usa los compiladores locales: `python`, `g++` (MSYS2 UCRT64), `javac`/`java`. Ca
 - Tras el primer TLE no se ejecutan los tests restantes (se marcan TLE) para no hacer esperar al jugador.
 - La salida máxima por test es 64 KB.
 
-> **Aviso:** el modo local ejecuta el código de usuarios directamente en la máquina y **no es seguro para producción**.
-> En producción se define `JUDGE0_URL` y `judge()` delega en Judge0 (`packages/judge/src/judge0.ts`), que aísla
-> cada envío. Ver [DEPLOY.md](DEPLOY.md).
+> **Aviso:** el juez ejecuta el código directamente en la máquina, sin aislarlo. El proyecto es solo para
+> uso local; antes de publicarlo habría que aislar el juez (por ejemplo con Judge0 o contenedores sin red).
 
-## Despliegue
+## Contenido público (web)
 
-`npm run build:vercel` genera `.vercel/output`: la web estática y `/api/run` + `/api/health` como funciones
-serverless (`apps/api/src/vercel.ts`, empaquetada con esbuild por `scripts/build-vercel.mjs`).
+La web no importa el contenido completo: un alias de Vite apunta `@algoria/content` a
+`packages/content/src/public.ts`, que lee `generated/public-content.json` (sin soluciones y con los tests
+ocultos vacíos). Lo genera `npm run gen:public -w @algoria/content`, que `dev`, `build`, `test` y
+`typecheck` de la web ejecutan antes. La API sí usa el contenido completo.
 
 ## Coliseo
 

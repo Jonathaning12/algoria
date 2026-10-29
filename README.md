@@ -50,8 +50,11 @@ Etapas jugables:
 6. **Torre Dinámica** (Nv 51–60): programación dinámica.
 7. **Coliseo**: torneo contrarreloj de 30 minutos con 5 problemas al azar; se abre al vencer el último gimnasio.
 
-## Publicar
+## Uso solo local
 
-Ver [docs/DEPLOY.md](docs/DEPLOY.md): la web y la API en Vercel, y el código de los jugadores
-ejecutándose aislado en Judge0. En local, sin `JUDGE0_URL`, el juez usa los compiladores de tu PC
-(no expongas ese modo a internet).
+El juez compila y ejecuta el código con los compiladores de tu PC, sin aislarlo. Es seguro para
+jugar tú en tu máquina (la API solo escucha en `localhost`), pero **no** lo publiques en internet
+ni lo abras a otras personas de tu red tal como está.
+
+Si `npm run dev` dice que el puerto 5180 o el 8787 está en uso, ya tienes otra copia del juego
+corriendo: ciérrala (o usa esa) y vuelve a intentarlo.
