@@ -56,6 +56,35 @@ export const EMPTY_PROGRESS: Progress = {
   positions: {},
 };
 
+/** Datos de partida (no de preferencias): progreso, borradores de código y récord del Coliseo. */
+const GAME_KEY_PREFIXES = ['algoria.progress.', 'algoria.draft.', 'algoria.coliseo.'];
+
+/**
+ * Borra todo lo que pertenece a una partida. Los ajustes de audio se conservan.
+ * Sin esto, al empezar de cero los duelos cargaban el código ya resuelto de la partida anterior.
+ */
+export function clearSavedGame(store: Pick<Storage, 'length' | 'key' | 'removeItem'> | null = safeLocalStorage()): void {
+  if (!store) return;
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < store.length; i++) {
+      const k = store.key(i);
+      if (k && GAME_KEY_PREFIXES.some((p) => k.startsWith(p))) keys.push(k);
+    }
+    keys.forEach((k) => store.removeItem(k));
+  } catch {
+    // Sin almacenamiento: no hay nada que borrar.
+  }
+}
+
+function safeLocalStorage(): Storage | null {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
 function loadProgress(): Progress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -162,6 +191,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetProgress = useCallback(() => {
+    clearSavedGame();
     setProgress(EMPTY_PROGRESS);
     setScreen({ name: 'title' });
   }, []);
