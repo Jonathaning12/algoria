@@ -310,7 +310,7 @@ export const nivel11: Level = {
     title: 'Mayor y menor',
     text: {
       python: 'Empieza con mayor = a[0] y menor = a[0]. También existen max(a), min(a) y sum(a).',
-      cpp: 'Empieza con mayor = a[0]. Acumula en long long y lee rápido con ios::sync_with_stdio(false).',
+      cpp: 'Empieza con mayor = a[0] y acumula en long long. Lectura rápida: ios::sync_with_stdio(false); cin.tie(nullptr); o bien scanf("%lld", &x) y printf("%lld\\n", s) de <cstdio>. Elige uno: no mezcles scanf/printf con cin/cout si desactivaste la sincronización.',
       java: 'Empieza con mayor = a[0]. Acumula en long y lee con BufferedReader + StringTokenizer.',
     },
   },

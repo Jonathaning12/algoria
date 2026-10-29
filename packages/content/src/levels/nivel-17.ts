@@ -98,7 +98,7 @@ export const nivel17: Level = {
     tips: {
       python: 'Haz p de tamaño n + 1 con p[0] = 0: así p[r] - p[l - 1] funciona incluso cuando l = 1.',
       cpp: 'p de tamaño n + 1 y en long long: la suma de 10⁵ valores de 10⁹ no cabe en int.',
-      java: 'p de tamaño n + 1 y en long. Junta las respuestas en un StringBuilder y imprímelas al final.',
+      java: 'p de tamaño n + 1 y en long. Para miles de respuestas usa PrintWriter out = new PrintWriter(new BufferedOutputStream(System.out)); escribe con out.println(x) y llama a out.flush() al final (sin él no sale nada). Un StringBuilder también sirve.',
     },
     quiz: {
       question: '¿Qué imprime este programa?',
