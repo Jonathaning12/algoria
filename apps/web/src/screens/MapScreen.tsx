@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { TILE_LEGEND, type SpriteId } from '@algoria/shared';
-import { allLevels } from '@algoria/content';
+import { allLevels, stages } from '@algoria/content';
 import { useGame } from '../state/game';
 import { Sprite } from '../components/Sprite';
 import { MapPanel } from '../components/world/MapPanel';
@@ -11,17 +11,19 @@ import {
   TALLGRASS_TEXT,
   examine,
   faceToward,
+  groundOf,
   houses,
   mapSize,
+  move as moveInWorld,
   npcStatus,
   startPosition,
-  step,
   talkMessage,
   worldNpcs,
   type Dir,
   type Message,
   type NpcStatus,
   type PlayerPos,
+  type Travel,
   type WorldNpc,
 } from '../game/world';
 import '../styles/world.css';
@@ -35,21 +37,42 @@ const MARK: Record<NpcStatus, { text: string; label: string }> = {
   extra: { text: '?', label: 'tiene un tip' },
 };
 
+/** Duración de cada paso del fundido al cambiar de etapa. */
+const FADE_STEP_MS = 90;
+/** Tiempo que el cartel con el nombre de la etapa sigue visible tras llegar. */
+const BANNER_MS = 2600;
+
+function prefersReducedMotion(): boolean {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+}
+
 function heroSprite(dir: Dir): SpriteId {
   return dir === 'up' ? 'hero_up' : dir === 'down' ? 'hero_down' : 'hero_side';
 }
 
 export function MapScreen() {
-  const { stage, progress, go, savePosition } = useGame();
+  const { stage, progress, go, savePosition, travelTo } = useGame();
   const npcs = useMemo(() => worldNpcs(stage), [stage]);
   const { cols, rows } = mapSize(stage.map);
-  const [pos, setPos] = useState<PlayerPos>(() => startPosition(stage, npcs, progress.position));
+  const ground = groundOf(stage);
+  const [pos, setPos] = useState<PlayerPos>(() => startPosition(stage, npcs, progress.positions[stage.id]));
   const [msg, setMsg] = useState<Message | null>(() =>
-    progress.position ? null : { speaker: 'PROF. BIT', sprite: 'prof', text: INTRO_TEXT },
+    Object.keys(progress.positions).length > 0 ? null : { speaker: 'PROF. BIT', sprite: 'prof', text: INTRO_TEXT },
   );
+  /** Oscuridad del fundido (0 = nada, 3 = negro). */
+  const [fade, setFade] = useState(0);
+  const [banner, setBanner] = useState<{ name: string; range: string } | null>(null);
+  const traveling = useRef(false);
+  const timers = useRef<number[]>([]);
   const worldRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const completed = progress.completed;
+
+  useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
 
   const tiles = useMemo(() => {
     const out: { x: number; y: number; id: SpriteId }[] = [];
@@ -87,18 +110,65 @@ export function MapScreen() {
     savePosition(next);
   };
 
+  /** Cambio de etapa: fundido a negro en 3 pasos, cambio, aclarado y cartel con el nombre. */
+  const startTravel = (t: Travel) => {
+    traveling.current = true;
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [];
+    const later = (ms: number, fn: () => void) => timers.current.push(window.setTimeout(fn, ms));
+    setMsg(null);
+    const arrive = () => {
+      travelTo(t.stage.id, t.pos);
+      setPos(t.pos);
+      setBanner({ name: t.stage.name, range: t.stage.range });
+      audio.sfx('confirm');
+    };
+    const done = () => {
+      traveling.current = false;
+      focusWorld();
+    };
+    if (prefersReducedMotion()) {
+      arrive();
+      done();
+      later(BANNER_MS, () => setBanner(null));
+      return;
+    }
+    [1, 2, 3].forEach((level, i) => later(i * FADE_STEP_MS, () => setFade(level)));
+    const dark = 3 * FADE_STEP_MS + 120;
+    later(dark, arrive);
+    [2, 1, 0].forEach((level, i) => later(dark + (i + 1) * FADE_STEP_MS, () => setFade(level)));
+    const end = dark + 3 * FADE_STEP_MS;
+    later(end, done);
+    later(end + BANNER_MS, () => setBanner(null));
+  };
+
   const move = (dir: Dir) => {
-    const r = step(stage, npcs, pos, dir, completed);
+    if (traveling.current) return;
+    const r = moveInWorld(stages, stage, npcs, pos, dir, completed);
+    if (r.travel) {
+      // El jugador pisa el camino y la pantalla se funde; la posición se guarda ya en la etapa nueva.
+      setPos(r.pos);
+      audio.sfx('step');
+      startTravel(r.travel);
+      return;
+    }
     update(r.pos);
-    audio.sfx(r.moved ? 'step' : 'bump');
     if (r.moved) {
+      audio.sfx('step');
       setMsg(r.tile === ',' ? { speaker: '¡CUIDADO!', sprite: 'bug', text: TALLGRASS_TEXT } : null);
     } else if (r.reason === 'exit' && stage.map.exit) {
+      audio.sfx('locked');
       setMsg({ speaker: 'CAMINO BLOQUEADO', text: stage.map.exit.lockedText });
+    } else if (r.reason === 'soon') {
+      audio.sfx('locked');
+      setMsg({ speaker: 'CAMINO', text: r.text });
+    } else {
+      audio.sfx('bump');
     }
   };
 
   const talkTo = (n: WorldNpc) => {
+    if (traveling.current) return;
     update({ ...pos, dir: faceToward(pos, n.npc) });
     setMsg(talkMessage(n, completed, allLevels));
     audio.sfx(npcStatus(n, completed, allLevels) === 'locked' ? 'locked' : 'npc');
@@ -106,6 +176,10 @@ export function MapScreen() {
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (traveling.current) {
+      e.preventDefault();
+      return;
+    }
     const key = e.key.toLowerCase();
     const dir = KEY_DIRS[key];
     if (dir) {
@@ -115,7 +189,7 @@ export function MapScreen() {
     }
     if (key === 'e') {
       e.preventDefault();
-      const found = examine(stage, npcs, pos, completed, allLevels);
+      const found = examine(stage, npcs, pos, completed, allLevels, stages);
       setMsg(found);
       audio.sfx(found ? 'talk' : 'bump');
     } else if (key === 'escape') {
@@ -143,7 +217,12 @@ export function MapScreen() {
                 aria-label={`Mapa del ${stage.name.toLowerCase()}. Usa W A S D o las flechas para moverte, E para examinar y Escape para cerrar mensajes.`}
                 onKeyDown={onKeyDown}
                 onClick={focusWorld}
-                style={{ width: cols * T, height: rows * T }}
+                style={{
+                  width: cols * T,
+                  height: rows * T,
+                  backgroundColor: ground.base,
+                  backgroundImage: `radial-gradient(${ground.dot} 2px, transparent 2.5px)`,
+                }}
               >
                 {tiles.map((t) => (
                   <div key={`${t.x},${t.y}`} className="world__tile" style={{ left: t.x * T, top: t.y * T }}>
@@ -199,6 +278,17 @@ export function MapScreen() {
 
             <div className="box world-place">
               <span className="px">{stage.name}</span>
+            </div>
+
+            {fade > 0 && <div className={`world-fade world-fade--${fade}`} aria-hidden="true" />}
+            {banner && (
+              <div className="box world-banner" aria-hidden="true">
+                <strong className="px world-banner__name">{banner.name}</strong>
+                <span className="px world-banner__range">{banner.range}</span>
+              </div>
+            )}
+            <div className="sr-only" role="status">
+              {banner ? `Has llegado a ${banner.name.toLowerCase()}, ${banner.range}.` : ''}
             </div>
 
             {msg && (
@@ -269,7 +359,7 @@ export function MapScreen() {
           </div>
         </section>
 
-        <MapPanel stage={stage} progress={progress} levels={allLevels} onProfile={() => go({ name: 'profile' })} />
+        <MapPanel stage={stage} stages={stages} progress={progress} levels={allLevels} onProfile={() => go({ name: 'profile' })} />
       </div>
     </main>
   );

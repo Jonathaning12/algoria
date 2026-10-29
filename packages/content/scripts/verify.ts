@@ -11,6 +11,15 @@ import { judge } from '@algoria/judge';
 import { stages } from '../src/index';
 
 const LOCAL = process.argv.includes('--local');
+/** --niveles=11-20 (o --niveles=18) ejecuta solo esos niveles; la validación estructural siempre es completa. */
+const RANGE = (() => {
+  const arg = process.argv.find((a) => a.startsWith('--niveles='));
+  if (!arg) return null;
+  const [a, b] = arg.slice('--niveles='.length).split('-').map(Number);
+  return { from: a!, to: b ?? a! };
+})();
+/** Límite de salida por test del juez. */
+const MAX_OUTPUT_BYTES = 64 * 1024;
 const LANG_LABEL: Record<Language, string> = { python: 'Python', cpp: 'C++', java: 'Java' };
 
 /* ---------------- 1. Validaciones estructurales ---------------- */
@@ -26,9 +35,9 @@ function checkPerLanguage(where: string, value: unknown) {
   }
 }
 
-function checkMap(stage: Stage) {
+function checkMap(stage: Stage, index: number) {
   const where = `etapa ${stage.id} · mapa`;
-  const { rows, spawn: sp, signs, extraNpcs, exit } = stage.map;
+  const { rows, spawn: sp, signs, extraNpcs, exit, back } = stage.map;
   const width = rows[0]?.length ?? 0;
   rows.forEach((r, y) => {
     if (r.length !== width) err(where, `la fila ${y} mide ${r.length} y no ${width}`);
@@ -71,6 +80,23 @@ function checkMap(stage: Stage) {
     err(where, 'la salida no es alcanzable');
   }
 
+  // Pasos entre etapas: `exit` (a la siguiente) y `back` (a la anterior). Toda etapa salvo la primera necesita `back`.
+  if (index > 0 && !back) err(where, 'falta `back` (vuelta a la etapa anterior)');
+  if (index === 0 && back) err(where, 'la primera etapa no puede tener `back`');
+  const height = rows.length;
+  const portals = [['exit', exit], ['back', back]] as const;
+  for (const [name, p] of portals) {
+    if (!p) continue;
+    const key = `${p.x},${p.y}`;
+    if (!walkable(p.x, p.y)) err(where, `${name} (${key}) no es una casilla caminable`);
+    if (!(p.x === 0 || p.y === 0 || p.x === width - 1 || p.y === height - 1)) err(where, `${name} (${key}) no está en el borde del mapa`);
+    if (taken.has(key)) err(where, `el NPC ${taken.get(key)} está sobre ${name} (${key})`);
+    if (p.x === sp.x && p.y === sp.y) err(where, `${name} (${key}) coincide con el spawn`);
+    if (!seen.has(key)) err(where, `${name} (${key}) no es alcanzable desde el spawn`);
+  }
+  if (exit && back && exit.x === back.x && exit.y === back.y) err(where, 'exit y back están en la misma casilla');
+  if (exit && !exit.lockedText.trim()) err(where, 'exit sin lockedText');
+
   // Carteles: cada S tiene su texto y cada texto está sobre una S.
   const signKeys = new Set(signs.map((s) => `${s.x},${s.y}`));
   rows.forEach((r, y) => [...r].forEach((ch, x) => {
@@ -86,8 +112,11 @@ function checkStructure() {
   const npcIds = new Set<string>();
   const sprites = new Set<string>();
   let expected = 1;
-  for (const stage of stages) {
-    checkMap(stage);
+  stages.forEach((stage, si) => {
+    if (stage.number !== si + 1) err(`etapa ${stage.id}`, `se esperaba el número de etapa ${si + 1}`);
+    if (stage.levels.length === 0) err(`etapa ${stage.id}`, 'no tiene niveles');
+    if (stage.levels[0] && !stage.range.startsWith(`Nv ${stage.levels[0].number}`)) err(`etapa ${stage.id}`, `range "${stage.range}" no empieza en Nv ${stage.levels[0].number}`);
+    checkMap(stage, si);
     for (const n of stage.map.extraNpcs) npcIds.add(n.id);
     stage.levels.forEach((lv, idx) => {
       const where = `Nv ${lv.number} (${lv.id})`;
@@ -126,7 +155,8 @@ function checkStructure() {
       const testIds = new Set(problem.tests.map((t) => t.id));
       if (testIds.size !== problem.tests.length) err(where, 'ids de test repetidos');
       if (problem.hints.length !== 3) err(where, 'se esperan 3 pistas');
-      const xp = lv.gym ? 250 : 100;
+      // Etapa 1: 100 XP por nivel; desde la etapa 2: 120. El gimnasio siempre da 250.
+      const xp = lv.gym ? 250 : stage.number === 1 ? 100 : 120;
       if (problem.xp !== xp) err(where, `xp debería ser ${xp}`);
       const tl = lv.gym ? 2000 : 1000;
       if (problem.timeLimitMs !== tl) err(where, `timeLimitMs debería ser ${tl}`);
@@ -138,8 +168,11 @@ function checkStructure() {
         }
         if (!/TODO/.test(problem.starter[lang])) err(where, `starter ${lang} sin comentario TODO`);
       }
+      for (const t of problem.tests) {
+        if (Buffer.byteLength(t.expected, 'utf8') > MAX_OUTPUT_BYTES) err(where, `el test ${t.id} espera más de 64 KB de salida`);
+      }
     });
-  }
+  });
 }
 
 /* ---------------- 2/3. Ejecución ---------------- */
@@ -205,16 +238,61 @@ const judgeRunner: Runner = (language, code, tests, timeLimitMs) => judge({ lang
 
 interface Job {
   level: number;
-  kind: 'solución' | 'lección' | 'quiz';
+  kind: 'solución' | 'lección' | 'quiz' | 'ingenua';
   language: Language;
   code: string;
   tests: TestCase[];
   timeLimitMs: number;
 }
 
+/**
+ * Soluciones ingenuas que DEBEN dar TLE en algún test oculto (y nunca WA/RE): garantizan que el problema
+ * exige la idea eficiente. Viven solo aquí, no en el contrato.
+ */
+const MUST_TLE: { problemId: string; language: Language; idea: string; code: string }[] = [
+  {
+    problemId: 'p18-ronda-de-dante',
+    language: 'cpp',
+    idea: 'sumar cada ventana desde cero, O(n·k)',
+    code: `#include <iostream>
+#include <vector>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n, k;
+    cin >> n >> k;
+    vector<long long> a(n);
+    for (int i = 0; i < n; i++) cin >> a[i];
+    long long mejor = -1;
+    int dia = 1;
+    for (int i = 0; i + k <= n; i++) {
+        long long s = 0;
+        for (int j = i; j < i + k; j++) s += a[j];
+        if (s > mejor) {
+            mejor = s;
+            dia = i + 1;
+        }
+    }
+    cout << mejor << "\\n" << dia << "\\n";
+    return 0;
+}
+`,
+  },
+];
+
+const inRange = (n: number) => !RANGE || (n >= RANGE.from && n <= RANGE.to);
+
 function buildJobs(): Job[] {
   const jobs: Job[] = [];
-  for (const lv of stages.flatMap((s) => s.levels)) {
+  for (const m of MUST_TLE) {
+    const lv = stages.flatMap((s) => s.levels).find((l) => l.problem.id === m.problemId);
+    if (!lv) throw new Error(`MUST_TLE: no existe el problema ${m.problemId}`);
+    if (!inRange(lv.number)) continue;
+    jobs.push({ level: lv.number, kind: 'ingenua', language: m.language, code: m.code, tests: lv.problem.tests, timeLimitMs: lv.problem.timeLimitMs });
+  }
+  for (const lv of stages.flatMap((s) => s.levels).filter((l) => inRange(l.number))) {
     for (const language of LANGUAGES) {
       jobs.push({ level: lv.number, kind: 'solución', language, code: lv.problem.solution[language], tests: lv.problem.tests, timeLimitMs: lv.problem.timeLimitMs });
       jobs.push({
@@ -277,8 +355,24 @@ async function main() {
 
   const jobs = buildJobs();
   const failures: string[] = [];
+  const naive: string[] = [];
   const results = await pool(jobs, 1, async (job) => {
     let res: RunResponse;
+    if (job.kind === 'ingenua') {
+      // Se ejecuta una sola vez: aquí el TLE es lo esperado. Debe pasar los ejemplos y no dar nunca WA/RE/CE.
+      res = await runner(job.language, job.code, job.tests, job.timeLimitMs).catch(
+        (e): RunResponse => ({ verdict: 'RE', passed: 0, total: job.tests.length, results: [], compileOutput: String(e) }),
+      );
+      const firstBad = res.results.find((r) => r.verdict !== 'AC');
+      const wrong = res.results.find((r) => r.verdict !== 'AC' && r.verdict !== 'TLE');
+      const ok = res.verdict === 'TLE' && !wrong && !!firstBad && !firstBad.sample;
+      const line =
+        `Nv ${job.level} · ingenua ${LANG_LABEL[job.language]}: ${res.verdict} ${res.passed}/${res.total}` +
+        (firstBad ? ` · primer fallo en ${firstBad.id} (${firstBad.verdict}, ${firstBad.timeMs} ms)` : '');
+      naive.push(`${ok ? '✓' : '✗'} ${line}`);
+      if (!ok) failures.push(`${line} → se esperaba TLE en un test oculto, sin WA/RE/CE${res.compileOutput ? ` · ${res.compileOutput.slice(0, 300)}` : ''}`);
+      return { job, res, maxMs: Math.max(0, ...res.results.map((r) => r.timeMs)) };
+    }
     try {
       res = await runner(job.language, job.code, job.tests, job.timeLimitMs);
       // Un TLE suelto suele ser ruido de la máquina (arranque de Python/JVM): se reintenta hasta 3 veces.
@@ -297,7 +391,7 @@ async function main() {
     return { job, res, maxMs };
   });
 
-  const levels = stages.flatMap((s) => s.levels);
+  const levels = stages.flatMap((s) => s.levels).filter((l) => inRange(l.number));
   const cell = (lv: number, kind: Job['kind'], lang: Language, withTime = false) => {
     const r = results.find((x) => x.job.level === lv && x.job.kind === kind && x.job.language === lang)!;
     return `${r.res.verdict} ${r.res.passed}/${r.res.total}${withTime ? ` (${r.maxMs} ms)` : ''}`;
@@ -310,6 +404,11 @@ async function main() {
     ['Nivel', ...LANGUAGES.flatMap((l) => [`${LANG_LABEL[l]} lec`, `${LANG_LABEL[l]} quiz`])],
     ...levels.map((lv) => [`Nv ${String(lv.number).padStart(2)}`, ...LANGUAGES.flatMap((l) => [cell(lv.number, 'lección', l), cell(lv.number, 'quiz', l)])]),
   ]);
+
+  if (naive.length) {
+    console.log('\nSoluciones ingenuas (deben dar TLE en un test oculto):');
+    for (const l of naive) console.log('  ' + l);
+  }
 
   if (failures.length) {
     console.log(`\nFallos de ejecución (${failures.length}):`);

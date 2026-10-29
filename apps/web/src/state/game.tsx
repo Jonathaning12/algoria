@@ -30,7 +30,16 @@ export interface Progress {
   completed: string[];
   /** ids de niveles cuyo rewardTip está en la Libreta */
   tips: string[];
-  position: { x: number; y: number; dir: Dir } | null;
+  /** Etapa donde está el jugador. */
+  stageId: string;
+  /** Última posición del jugador en cada etapa (por stage.id). */
+  positions: Record<string, SavedPosition>;
+}
+
+export interface SavedPosition {
+  x: number;
+  y: number;
+  dir: Dir;
 }
 
 const STORAGE_KEY = 'algoria.progress.v1';
@@ -42,19 +51,39 @@ export const EMPTY_PROGRESS: Progress = {
   xp: 0,
   completed: [],
   tips: [],
-  position: null,
+  stageId: stages[0]!.id,
+  positions: {},
 };
 
 function loadProgress(): Progress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return EMPTY_PROGRESS;
-    const parsed = JSON.parse(raw) as Partial<Progress>;
+    const parsed = JSON.parse(raw) as Partial<Progress> & { position?: SavedPosition | null };
     if (parsed.version !== 1) return EMPTY_PROGRESS;
-    return { ...EMPTY_PROGRESS, ...parsed };
+    return migrateProgress(parsed);
   } catch {
     return EMPTY_PROGRESS;
   }
+}
+
+/**
+ * Completa una partida guardada con los campos nuevos sin cambiar de versión:
+ * el antiguo `position` (una sola etapa) pasa a `positions[primera etapa]`.
+ */
+export function migrateProgress(parsed: Partial<Progress> & { position?: SavedPosition | null }): Progress {
+  const { position, ...rest } = parsed;
+  const first = stages[0]!.id;
+  const positions: Record<string, SavedPosition> =
+    rest.positions && typeof rest.positions === 'object' ? { ...rest.positions } : {};
+  if (position && !positions[first]) positions[first] = position;
+  const stageId = typeof rest.stageId === 'string' && stages.some((s) => s.id === rest.stageId) ? rest.stageId : first;
+  return { ...EMPTY_PROGRESS, ...rest, stageId, positions };
+}
+
+/** Etapa de un id (o la primera si no existe). */
+export function stageById(id: string | undefined): Stage {
+  return stages.find((s) => s.id === id) ?? stages[0]!;
 }
 
 /** Nivel del jugador = niveles completados + 1. */
@@ -79,7 +108,10 @@ interface GameApi {
   stage: Stage;
   go: (screen: Screen) => void;
   setLanguage: (lang: Language) => void;
-  savePosition: (pos: NonNullable<Progress['position']>) => void;
+  /** Guarda la posición del jugador en la etapa actual. */
+  savePosition: (pos: SavedPosition) => void;
+  /** Cambia de etapa y coloca al jugador en `pos`. */
+  travelTo: (stageId: string, pos: SavedPosition) => void;
   /** Marca el nivel como completado, suma XP y guarda el tip. Idempotente. */
   completeLevel: (levelId: string, xp: number) => void;
   resetProgress: () => void;
@@ -108,9 +140,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const setLanguage = useCallback((language: Language) => setProgress((p) => ({ ...p, language })), []);
 
   const savePosition = useCallback(
-    (position: NonNullable<Progress['position']>) => setProgress((p) => ({ ...p, position })),
+    (position: SavedPosition) =>
+      setProgress((p) => {
+        const id = stageById(p.stageId).id;
+        return { ...p, positions: { ...p.positions, [id]: position } };
+      }),
     [],
   );
+
+  const travelTo = useCallback((stageId: string, position: SavedPosition) => {
+    const id = stageById(stageId).id;
+    setProgress((p) => ({ ...p, stageId: id, positions: { ...p.positions, [id]: position } }));
+  }, []);
 
   const completeLevel = useCallback((levelId: string, xp: number) => {
     setProgress((p) => {
@@ -124,12 +165,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setScreen({ name: 'title' });
   }, []);
 
-  // Por ahora solo existe la etapa 1.
-  const stage = stages[0]!;
+  const stage = stageById(progress.stageId);
 
   const api = useMemo<GameApi>(
-    () => ({ screen, progress, stage, go, setLanguage, savePosition, completeLevel, resetProgress }),
-    [screen, progress, stage, go, setLanguage, savePosition, completeLevel, resetProgress],
+    () => ({ screen, progress, stage, go, setLanguage, savePosition, travelTo, completeLevel, resetProgress }),
+    [screen, progress, stage, go, setLanguage, savePosition, travelTo, completeLevel, resetProgress],
   );
 
   return <GameContext.Provider value={api}>{children}</GameContext.Provider>;

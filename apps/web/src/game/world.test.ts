@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import type { Level, Stage } from '@algoria/shared';
+import { stages as contentStages } from '@algoria/content';
+import { migrateProgress } from '../state/game';
 import {
+  arrivalAtExit,
+  comingSoonText,
   examine,
   faceToward,
   facingTile,
+  groundOf,
   houses,
   isExitLocked,
+  missionElsewhere,
+  move,
   npcStatus,
   startPosition,
   step,
@@ -160,5 +167,130 @@ describe('startPosition', () => {
     expect(startPosition(stage, npcs, null)).toEqual({ x: 3, y: 1, dir: 'down' });
     expect(startPosition(stage, npcs, { x: 0, y: 0, dir: 'up' })).toEqual({ x: 3, y: 1, dir: 'down' });
     expect(startPosition(stage, npcs, { x: 2, y: 1, dir: 'up' })).toEqual({ x: 3, y: 1, dir: 'down' });
+  });
+});
+
+/* ---------- Varias etapas (con una etapa 2 falsa) ---------- */
+
+function forest(levels: Level[] = []): Stage {
+  return {
+    id: 'bosque-iterador',
+    number: 2,
+    name: 'BOSQUE ITERADOR',
+    range: 'Nv 4–5',
+    summary: '',
+    badge: 'HOJA',
+    color: '#2f7a3a',
+    levels,
+    map: {
+      rows: [
+        'PP=PP', //
+        'P   P',
+        'P B P',
+        'PP=PP',
+      ],
+      spawn: { x: 2, y: 1 },
+      signs: [],
+      extraNpcs: [],
+      back: { x: 2, y: 0 },
+      exit: { x: 2, y: 3, lockedText: 'Cerrado' },
+    },
+  };
+}
+
+describe('viajes entre etapas', () => {
+  const town = makeStage(levels);
+  const lvl4 = level(4, 1, 2);
+  const lvl5 = level(5, 3, 2, true);
+  const woods = forest([lvl4, lvl5]);
+  const world = [town, woods];
+  const all = [...levels, lvl4, lvl5];
+  const gymDone = ['l1', 'l2', 'l3'];
+  const atExit = { x: 3, y: 3, dir: 'down' as const };
+
+  it('la salida bloqueada no lleva a ningún sitio', () => {
+    const r = move(world, town, worldNpcs(town), atExit, 'down', []);
+    expect(r).toMatchObject({ moved: false, reason: 'exit' });
+    expect(r.travel).toBeUndefined();
+  });
+
+  it('con el gimnasio completado, la salida lleva al spawn de la etapa siguiente', () => {
+    const r = move(world, town, worldNpcs(town), atExit, 'down', gymDone);
+    expect(r.travel?.stage.id).toBe('bosque-iterador');
+    expect(r.travel?.pos).toEqual({ x: 2, y: 1, dir: 'down' });
+  });
+
+  it('en la última etapa la salida abierta dice "Próximamente" y no mueve al jugador', () => {
+    const from = { x: 2, y: 2, dir: 'down' as const };
+    const done = [...gymDone, 'l4', 'l5'];
+    const r = move(world, woods, worldNpcs(woods), from, 'down', done);
+    expect(r).toMatchObject({ moved: false, reason: 'soon', pos: from });
+    if (r.moved === false && r.reason === 'soon') expect(r.text).toBe('Próximamente: Cueva Recursiva. El camino aún no está listo.');
+    // Con una sola etapa también funciona.
+    const solo = move([town], town, worldNpcs(town), atExit, 'down', gymDone);
+    expect(solo).toMatchObject({ moved: false, reason: 'soon' });
+    expect(comingSoonText(town)).toContain('Bosque Iterador');
+  });
+
+  it('back vuelve a la etapa anterior, junto a su salida y mirando hacia dentro', () => {
+    const r = move(world, woods, worldNpcs(woods), { x: 2, y: 1, dir: 'down' }, 'up', []);
+    expect(r.travel?.stage.id).toBe('s');
+    expect(r.travel?.pos).toEqual({ x: 3, y: 3, dir: 'up' });
+    expect(arrivalAtExit(town)).toEqual({ x: 3, y: 3, dir: 'up' });
+  });
+
+  it('back en la primera etapa no hace nada especial', () => {
+    const lone = forest();
+    const r = move([lone], lone, worldNpcs(lone), { x: 2, y: 1, dir: 'down' }, 'up', []);
+    expect(r).toMatchObject({ moved: true, pos: { x: 2, y: 0 } });
+    expect(r.travel).toBeUndefined();
+  });
+
+  it('examinar la salida abierta y el camino de vuelta', () => {
+    const m = examine(town, worldNpcs(town), { x: 3, y: 3, dir: 'down' }, gymDone, all, world);
+    expect(m?.text).toBe('El camino está abierto. Lleva al Bosque Iterador.');
+    const b = examine(woods, worldNpcs(woods), { x: 2, y: 1, dir: 'up' }, [], all, world);
+    expect(b?.text).toBe('Este camino vuelve al Pueblo Semilla.');
+  });
+
+  it('misión actual en otra etapa', () => {
+    expect(missionElsewhere(world, town, lvl4)).toBe('Cruza al sur hacia el Bosque Iterador. Allí te espera NPC4 (Nv 4).');
+    expect(missionElsewhere(world, woods, levels[0]!)).toBe(
+      'Vuelve al Pueblo Semilla por el camino del norte. Allí te espera NPC1 (Nv 1).',
+    );
+    expect(missionElsewhere(world, town, levels[0]!)).toBeNull();
+  });
+
+  it('fondo de hierba por etapa con valor por defecto', () => {
+    expect(groundOf(woods)).toEqual({ base: '#4f9e38', dot: '#2f7a3a' });
+    expect(groundOf({ id: 'desconocida' })).toEqual({ base: '#6cc04a', dot: '#4f9e38' });
+  });
+});
+
+describe('migración de partidas', () => {
+  const first = contentStages[0]!.id;
+
+  it('el antiguo position pasa a positions de la primera etapa', () => {
+    const p = migrateProgress({ version: 1, xp: 30, completed: ['a'], position: { x: 4, y: 5, dir: 'left' } });
+    expect(p.stageId).toBe(first);
+    expect(p.positions).toEqual({ [first]: { x: 4, y: 5, dir: 'left' } });
+    expect(p.xp).toBe(30);
+    expect('position' in p).toBe(false);
+  });
+
+  it('respeta positions y stageId nuevos; un stageId desconocido vuelve a la primera etapa', () => {
+    const p = migrateProgress({ version: 1, stageId: 'nope', positions: { x: { x: 1, y: 1, dir: 'up' } } });
+    expect(p.stageId).toBe(first);
+    expect(p.positions).toEqual({ x: { x: 1, y: 1, dir: 'up' } });
+    expect(migrateProgress({ version: 1, position: null }).positions).toEqual({});
+  });
+});
+
+describe('houses con una sola casa', () => {
+  it('si la única casa es la del líder, es el gimnasio aunque el Prof. Bit esté cerca', () => {
+    const s = makeStage([level(1, 4, 2, true)]);
+    s.map = { ...s.map, rows: ['TTTTTTT', 'T    HT', 'T  S  T', 'T ,,~ T', 'TTT=TTT'] };
+    s.map.extraNpcs = [{ ...s.map.extraNpcs[0]!, x: 5, y: 2 }];
+    expect(houses(s).map((h) => h.kind)).toEqual(['gym']);
   });
 });

@@ -1,7 +1,7 @@
 // Canciones originales de Algoria (8 compases en bucle, 4/4).
 import { bassLine, drumLine, type Song, type Step } from './notes';
 
-export type TrackId = 'title' | 'town' | 'battle';
+export type TrackId = 'title' | 'town' | 'forest' | 'battle';
 
 /** Pantalla de título: tranquila, como el comienzo de una aventura. */
 const title: Song = {
@@ -48,6 +48,29 @@ const town: Song = {
   ],
 };
 
+/** Bosque Iterador: modo dórico en Re, algo misteriosa pero tranquila. */
+const forest: Song = {
+  bpm: 96,
+  voices: [
+    {
+      wave: 'square',
+      gain: 0.4,
+      steps: [
+        ['D5', 1], ['F5', 0.5], ['A5', 0.5], ['G5', 1], ['F5', 1],
+        ['E5', 0.5], ['F5', 0.5], ['G5', 1], ['A5', 2],
+        ['C5', 1], ['E5', 0.5], ['G5', 0.5], ['F5', 1], ['E5', 1],
+        ['D5', 3], ['-', 1],
+        ['A4', 0.5], ['D5', 0.5], ['F5', 1], ['E5', 0.5], ['D5', 0.5], ['C5', 1],
+        ['B4', 0.5], ['C5', 0.5], ['D5', 1], ['E5', 2],
+        ['F5', 1], ['E5', 0.5], ['D5', 0.5], ['C5', 1], ['E5', 1],
+        ['D5', 3], ['-', 1],
+      ],
+    },
+    { wave: 'triangle', gain: 0.9, steps: bassLine(['D3', 'C3', 'A2', 'D3', 'D3', 'G2', 'A2', 'D3'], [0, 7, 12, 7]) },
+    { wave: 'noise', gain: 0.08, steps: drumLine('....x...', 8) },
+  ],
+};
+
 /** Duelo de código: más rápida y en menor, con tensión pero sin agobiar. */
 const battle: Song = {
   bpm: 138,
@@ -71,4 +94,10 @@ const battle: Song = {
   ],
 };
 
-export const SONGS: Record<TrackId, Song> = { title, town, battle };
+export const SONGS: Record<TrackId, Song> = { title, town, forest, battle };
+
+/** Canción de fondo de cada etapa (mapa, diálogos, lecciones). */
+export const STAGE_TRACK: Record<string, TrackId> = {
+  'pueblo-semilla': 'town',
+  'bosque-iterador': 'forest',
+};

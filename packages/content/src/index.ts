@@ -1,9 +1,10 @@
 // API pública del contenido. La web y la API dependen de estas exportaciones:
 // se pueden añadir más, pero no cambiar sus firmas.
 import type { Level, Problem, Stage } from '@algoria/shared';
+import { bosqueIterador } from './stages/bosque-iterador';
 import { puebloSemilla } from './stages/pueblo-semilla';
 
-export const stages: Stage[] = [puebloSemilla];
+export const stages: Stage[] = [puebloSemilla, bosqueIterador];
 
 export const allLevels: Level[] = stages.flatMap((s) => s.levels);
 

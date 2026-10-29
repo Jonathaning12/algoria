@@ -3,25 +3,26 @@
 import { useEffect } from 'react';
 import type { Screen } from '../state/game';
 import { audio, type SfxId, type TrackId } from './engine';
+import { STAGE_TRACK } from './songs';
 
-export function trackFor(screen: Screen['name']): TrackId | null {
+export function trackFor(screen: Screen['name'], stageId: string): TrackId | null {
   switch (screen) {
     case 'title':
       return 'title';
     case 'battle':
       return 'battle';
     case 'victory':
-      // La fanfarria de victoria suena sola; la canción del pueblo vuelve en el mapa.
+      // La fanfarria de victoria suena sola; la canción de la etapa vuelve en el mapa.
       return null;
     default:
-      return 'town';
+      return STAGE_TRACK[stageId] ?? 'town';
   }
 }
 
-export function useGameAudio(screen: Screen['name']): void {
+export function useGameAudio(screen: Screen['name'], stageId: string): void {
   useEffect(() => {
-    audio.playMusic(trackFor(screen));
-  }, [screen]);
+    audio.playMusic(trackFor(screen, stageId));
+  }, [screen, stageId]);
 
   useEffect(() => {
     const unlock = () => audio.unlock();

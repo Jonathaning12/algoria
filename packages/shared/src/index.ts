@@ -14,6 +14,10 @@ export type SpriteId =
   | 'prof' | 'lia' | 'tomas' | 'bug'
   // NPCs extra del Pueblo Semilla (el agente del mundo los dibuja).
   | 'max' | 'nora' | 'leo' | 'sofi' | 'iris' | 'bruno' | 'gael' | 'gym_semilla'
+  // NPCs del Bosque Iterador (Nv 11–20).
+  | 'rana' | 'kai' | 'lupe' | 'otto' | 'mila' | 'tito' | 'zoe' | 'dante' | 'vera' | 'gym_bosque'
+  // Tiles del bosque.
+  | 'pine' | 'bush' | 'log' | 'mushroom' | 'bridge'
   | 'grass' | 'tallgrass' | 'path' | 'water' | 'tree' | 'flower' | 'sign' | 'house' | 'rock';
 
 export interface DialogueLine {
@@ -125,8 +129,16 @@ export interface StageMap {
   signs: { x: number; y: number; text: string }[];
   /** NPCs que no son nivel (p. ej. Prof. Bit): solo dicen su saludo. */
   extraNpcs: (Npc & { greeting: string })[];
-  /** Casilla de salida bloqueada hasta vencer el gimnasio (opcional). */
+  /**
+   * Salida a la etapa siguiente. Bloqueada (muestra lockedText) hasta completar el
+   * nivel gym de esta etapa; después, pisarla lleva al `spawn` de la etapa siguiente.
+   */
   exit?: { x: number; y: number; lockedText: string };
+  /**
+   * Vuelta a la etapa anterior (siempre abierta). Pisarla lleva a la etapa anterior,
+   * a la casilla caminable junto a su `exit`.
+   */
+  back?: { x: number; y: number };
 }
 
 /** Leyenda de caracteres de StageMap.rows. */
@@ -140,10 +152,16 @@ export const TILE_LEGEND = {
   S: 'sign',
   H: 'house',
   o: 'rock',
+  // Bosque
+  P: 'pine',
+  B: 'bush',
+  L: 'log',
+  m: 'mushroom',
+  '#': 'bridge',
 } as const satisfies Record<string, SpriteId>;
 
 /** Casillas que bloquean el paso. */
-export const SOLID_TILES = new Set<string>(['~', 'T', 'S', 'H', 'o']);
+export const SOLID_TILES = new Set<string>(['~', 'T', 'S', 'H', 'o', 'P', 'B', 'L']);
 
 export interface Stage {
   id: string;

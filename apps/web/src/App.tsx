@@ -10,8 +10,8 @@ import { VictoryScreen } from './screens/VictoryScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
 
 export function App() {
-  const { screen } = useGame();
-  useGameAudio(screen.name);
+  const { screen, stage } = useGame();
+  useGameAudio(screen.name, stage.id);
   return (
     <>
       <CurrentScreen />

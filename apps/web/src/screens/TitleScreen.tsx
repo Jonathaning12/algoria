@@ -5,6 +5,7 @@ import { LANGUAGE_INFO } from '../lib/languages';
 import { Sprite } from '../components/Sprite';
 import { ConfirmReset } from '../components/world/ConfirmReset';
 import { audio } from '../audio/engine';
+import { stageTitle } from '../game/world';
 import '../styles/world.css';
 
 const STARS: [number, number, number, string][] = [
@@ -35,7 +36,7 @@ function Speech({ children }: { children: ReactNode }) {
 }
 
 export function TitleScreen() {
-  const { progress, setLanguage, go, resetProgress } = useGame();
+  const { progress, stage, setLanguage, go, resetProgress } = useGame();
   const saved = progress.language;
 
   return (
@@ -53,6 +54,7 @@ export function TitleScreen() {
         {saved ? (
           <ContinueGame
             language={saved}
+            stageName={stage.name}
             onContinue={() => go({ name: 'map' })}
             onReset={resetProgress}
           />
@@ -71,10 +73,12 @@ export function TitleScreen() {
 
 function ContinueGame({
   language,
+  stageName,
   onContinue,
   onReset,
 }: {
   language: Language;
+  stageName: string;
   onContinue: () => void;
   onReset: () => void;
 }) {
@@ -82,7 +86,7 @@ function ContinueGame({
   return (
     <>
       <Speech>
-        ¡Hola de nuevo! {info.companion} te espera en el Pueblo Semilla. ¿Seguimos con la aventura?
+        ¡Hola de nuevo! {info.companion} te espera en {stageTitle(stageName)}. ¿Seguimos con la aventura?
       </Speech>
       <div className="starter__stage" style={{ padding: '12px 32px' }}>
         <div className="bob">

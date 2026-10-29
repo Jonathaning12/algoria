@@ -2,25 +2,32 @@
 import type { Level, Stage } from '@algoria/shared';
 import { currentLevel, playerLevel, type Progress } from '../../state/game';
 import { LANGUAGE_INFO } from '../../lib/languages';
-import { levelStatus } from '../../game/world';
+import { levelStatus, missionElsewhere, stageTitle } from '../../game/world';
 import { Sprite } from '../Sprite';
 import { Bar, Kbd } from '../ui';
 
 export function MapPanel({
   stage,
+  stages = [stage],
   progress,
   levels,
   onProfile,
 }: {
   stage: Stage;
+  /** Todas las etapas con contenido (para indicar a dónde ir si la misión está en otra). */
+  stages?: Stage[];
   progress: Progress;
   levels: Level[];
   onProfile: () => void;
 }) {
   const info = LANGUAGE_INFO[progress.language ?? 'python'];
   const totalXp = stage.levels.reduce((sum, l) => sum + (l.problem?.xp ?? 0), 0);
-  const done = stage.levels.filter((l) => progress.completed.includes(l.id)).length;
+  const doneLevels = stage.levels.filter((l) => progress.completed.includes(l.id));
+  const done = doneLevels.length;
+  // XP de esta etapa (la barra es por etapa; el total está en el perfil).
+  const stageXp = stages.length > 1 ? doneLevels.reduce((sum, l) => sum + (l.problem?.xp ?? 0), 0) : progress.xp;
   const mission = currentLevel(progress);
+  const elsewhere = mission ? missionElsewhere(stages, stage, mission) : null;
 
   return (
     <aside className="mapside" aria-label="Estado del jugador">
@@ -33,9 +40,9 @@ export function MapPanel({
             <strong className="px">{progress.playerName}</strong>
             <span className="px">Nv {playerLevel(progress)}</span>
           </div>
-          <Bar value={totalXp > 0 ? progress.xp / totalXp : 0} color={info.color} label="Experiencia de la etapa" />
+          <Bar value={totalXp > 0 ? Math.min(1, stageXp / totalXp) : 0} color={info.color} label="Experiencia de la etapa" />
           <div className="player__row">
-            <span>{totalXp > 0 ? `${progress.xp}/${totalXp} XP` : `${progress.xp} XP`}</span>
+            <span>{totalXp > 0 ? `${stageXp}/${totalXp} XP` : `${progress.xp} XP`}</span>
             <span className="player__comp">
               <Sprite id={info.sprite} size={24} />
               {info.label}
@@ -47,15 +54,17 @@ export function MapPanel({
       <div className="box mission">
         <span className="px mission__title">MISIÓN ACTUAL</span>
         <p>
-          {mission ? (
+          {elsewhere ? (
+            <>{elsewhere}</>
+          ) : mission ? (
             <>
               Haz clic en <strong>{mission.npc.name}</strong> en el mapa para empezar el nivel {mission.number}:{' '}
               <Kbd>{mission.topic}</Kbd>.
             </>
           ) : stage.levels.length === 0 ? (
-            <>Explora el pueblo. Los maestros están llegando… Habla con el Prof. Bit mientras tanto.</>
+            <>Explora {stageTitle(stage.name)}. Los maestros están llegando…</>
           ) : (
-            <>¡Has completado el {stage.name.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}! La siguiente etapa llegará pronto.</>
+            <>¡Has completado {stageTitle(stage.name)}! La siguiente etapa llegará pronto.</>
           )}
         </p>
       </div>

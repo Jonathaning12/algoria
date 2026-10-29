@@ -40,7 +40,10 @@ Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Los bocetos de diseño origina
 
 ## Estado
 
-MVP de la Etapa 1, **Pueblo Semilla** (niveles 1–10: fundamentos del lenguaje).
+Etapas jugables:
+
+1. **Pueblo Semilla** (Nv 1–10): fundamentos del lenguaje.
+2. **Bosque Iterador** (Nv 11–20): arreglos, strings, matrices, sumas acumuladas, ventana deslizante y frecuencias; primer contacto con la eficiencia (Big-O).
 
 > El juez ejecuta el código directamente en la máquina: sirve para desarrollo local,
 > pero **no debe exponerse a internet** sin aislarlo antes (ver docs/ARCHITECTURE.md).

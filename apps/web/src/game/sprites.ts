@@ -8,7 +8,17 @@ export const PALETTE: Record<string, string> = {
   l: '#a8e06a', y: '#f6c945', Y: '#c58a1e', o: '#f08a3c', c: '#7fd3e8', C: '#3a8fb5',
   p: '#4a4560', e: '#c3c7d4', E: '#7d8399', n: '#b07a4a', N: '#6e4527', t: '#ead9a6',
   T: '#cdb67a', v: '#9b6fd6', V: '#5e3f96',
+  // Bosque: verde de pino muy oscuro y rosa para vestidos y flores.
+  D: '#1d4f2a', q: '#f29bb4',
 };
+
+/**
+ * Sprite asimétrico: filas de 8 que se reflejan salvo las de `right`,
+ * que sustituyen la mitad derecha (columnas 8–15) de esa fila.
+ */
+function asym(left: string[], right: Record<number, string>): string[] {
+  return left.map((row, i) => row + (right[i] ?? [...row].reverse().join('')));
+}
 
 export const SPRITES: Record<SpriteId, string[]> = {
   hero_down: ['.....kkk', '....krrr', '...krrrw', '...krrrr', '..kRRRRR', '..khssss', '..khskss', '..khssss', '...kSsss', '...kkbbb', '..kbbbbb', '.ksBbbbb', '.kskbbbb', '..kkpppp', '...kppk.', '...kkkk.'],
@@ -31,6 +41,39 @@ export const SPRITES: Record<SpriteId, string[]> = {
   gael: ['........', '....kkkk', '...kgggg', '..kgggwg', '.kGGGGGG', '..khssss', '..khskss', '..khssss', '...kSsss', '...kkrrr', '..kwwwww', '.kswwwww', '.kskwwww', '..kkCCCC', '...kCCk.', '...kkkk.'],
   // Líder del Gimnasio Semilla: corona de hojas y capa.
   gym_semilla: ['...k.kgk', '..kgkglg', '..kyyyyy', '..kHHHHH', '.kHHssss', '.kHskkss', '.kHsssss', 'kGkSssss', 'kGGkyyyy', 'kGgkgggg', 'kGgggggy', 'kGgsgggy', 'kGgkgggy', 'kGGkpppp', 'kGGkppk.', 'kkkkkkk.'],
+  // Vecinos del Bosque Iterador.
+  // Rana: niña con capucha de rana (ojos saltones arriba).
+  rana: ['..kkk...', '.kwkwkkk', '.kgggggg', '.kgggggg', '.kGGGGGG', '.kgGssss', '.kgsskss', '.kgsssss', '..kgSsss', '..kkgggg', '.kgggggg', '.ksgGggg', '.kskgggg', '..kkpppp', '...kyyk.', '...kkkk.'],
+  // Kai: explorador con sombrero de ala y mochila (correas y bultos a los lados).
+  kai: ['........', '....kkkk', '...knnnn', '..knnnnn', '.kNNNNNN', '..khssss', '..khskss', '..khssss', 'kRRkSsss', 'kNNkNttt', 'kNNkNttt', 'kNksNttt', 'kNNkNttt', '..kkpppp', '...kNNk.', '...kkkk.'],
+  // Lupe: niña pelirroja con una lupa en la mano derecha.
+  lupe: asym(
+    ['........', '.....kkk', '....kooo', '...koooo', '..kooooo', '..kossss', '..koskss', '..kossss', '.kokSsss', '..kkllll', '.kslllll', '.kskllll', '..kkllll', '..kppppp', '...kssk.', '...kkkk.'],
+    { 7: 'ssssokk.', 8: 'sssSkcwk', 9: 'llllkcck', 10: 'lllllkk.', 11: 'llllNsk.' },
+  ),
+  // Otto: gafas redondas enormes.
+  otto: ['........', '....kkkk', '...khhhh', '..khhhhh', '..khssss', '..kkkkks', '..kcwckk', '..kcccks', '..kkkkks', '...kSsss', '..kkvvvv', '.ksvvvvv', '.kskvvvv', '..kkpppp', '...kppk.', '...kkkk.'],
+  // Mila: flores rojas en el pelo y vestido rosa.
+  mila: ['..krk...', '.krwrkkk', '..krknnn', '..knnnnn', '.knnnnnn', '.knnssss', '.knnskss', '.knnssss', '.knkSsss', '.knkkqqq', '..kqqqqq', '.ksqqqqq', '.kskqqqq', '..kqqqqq', '...kssk.', '...kkkk.'],
+  // Tito: gorra azul del revés (se ve el pelo por la abertura) y camiseta a rayas.
+  tito: ['........', '....kkkk', '...kbbbb', '..kbbbbb', '..kbbbkh', '..khssss', '..khskss', '..khssss', '...kSsss', '...kkrrr', '..krrrrr', '.kswwwww', '.kskrrrr', '..kkBBBB', '...kssk.', '...kkkk.'],
+  // Zoe: bufanda roja y blanca con las puntas colgando.
+  zoe: ['........', '....kkkk', '...kHHHH', '..kHHHHH', '..kHHHHH', '..kHssss', '..kHskss', '..kHssss', '..kkrrrr', '..krrwrr', '.kCCCCrw', '.ksCCCrr', '.kskCCwr', '..kkpppp', '...kppk.', '...kkkk.'],
+  // Dante: entrenador con gorra y cronómetro en la mano.
+  dante: asym(
+    ['........', '....kkkk', '...krrrr', '..krrrrr', '.kRRRRRR', '..khssss', '..khskss', '..khssss', '...kSsss', '...kkBBB', '..kBwBBB', '.ksBwBBB', '.kskwBBB', '..kkpppp', '...kppk.', '...kkkk.'],
+    { 9: 'BBBkk.e.', 10: 'BBBwBkkk', 11: 'BBBwskwk', 12: 'BBBwkkkk' },
+  ),
+  // Vera: pelo largo y un libro rojo abierto entre las manos.
+  vera: ['........', '....kkkk', '...khhhh', '..khhhhh', '.khhhhhh', '.khhssss', '.khhskss', '.khhssss', '.khkSsss', '.khkkooo', '..kookkk', '..ksskRw', '..kookkk', '..kppppp', '...kssk.', '...kkkk.'],
+  // Líder del Gimnasio Hoja: guardabosques con sombrero de ala ancha, barba y capa verde.
+  gym_bosque: ['.....kkk', '....kNNN', '...kNNNN', 'kNNNNNNN', 'kkkkkkkk', '.kGkssss', '.kGkskss', '.kGkssss', 'kGGkhhhh', 'kGgkkttt', 'kGgktttt', 'kGgstytt', 'kGgkNNNN', 'kGGkpppp', 'kGGkppk.', 'kkkkkkk.'],
+  // Tiles del bosque.
+  pine: ['.......k', '......kG', '.....kGG', '....kGGD', '.....kGD', '....kGGD', '...kGGDD', '..kGGDDD', '....kGGD', '...kGGDD', '..kGGDDD', '.kGGDDDD', 'kkkkkkkk', '......kN', '......kN', '.....kkk'],
+  bush: ['........', '........', '........', '........', '.....kkk', '...kkGgg', '..kGgglg', '.kGggggg', '.kGgglgg', 'kGGggggg', 'kGGGgggG', 'kGGGGGGG', '.kGGGGGG', '..kkkkkk', '........', '........'],
+  log: ['........', '........', '........', '........', '........', '.kkkkkkk', 'kttkNNNN', 'ktTtknnn', 'kTtTknNn', 'ktTtknnn', 'kttkNNNN', '.kkkkkkk', '........', '........', '........', '........'],
+  mushroom: ['........', '........', '........', '........', '........', '........', '........', '........', '......kk', '....kkrr', '...krwrr', '...kkkkk', '......kw', '......kw', '.....kkk', '........'],
+  bridge: ['kNnnnnnn', 'kNnnnNnn', 'kNnnnnnn', 'kNNNNNNN', 'kNnnnnnn', 'kNnNnnnn', 'kNnnnnnn', 'kNNNNNNN', 'kNnnnnnn', 'kNnnnnNn', 'kNnnnnnn', 'kNNNNNNN', 'kNnnnnnn', 'kNnnNnnn', 'kNnnnnnn', 'kNNNNNNN'],
   grass: ['gggggggg', 'ggGggggg', 'gGgGgggg', 'gggggggg', 'gggggggg', 'gggggGgg', 'ggggGgGg', 'gggggggg', 'gggggggg', 'ggGggggg', 'gGgGgggg', 'gggggggg', 'gggggggg', 'gggggGgg', 'ggggGgGg', 'gggggggg'],
   tallgrass: ['GGGGGGGG', 'GlGGGGlG', 'lGlGGlGl', 'GGGGGGGG', 'GGGlGGGG', 'GGlGlGGG', 'GGGGGGGG', 'GGGGGGGG', 'GGGGGGGG', 'GlGGGGlG', 'lGlGGlGl', 'GGGGGGGG', 'GGGlGGGG', 'GGlGlGGG', 'GGGGGGGG', 'GGGGGGGG'],
   path: ['tttttttt', 'tttTtttt', 'tttttttt', 'tTtttttt', 'tttttttT', 'tttttttt', 'ttttTttt', 'tttttttt', 'tttttttt', 'tttTtttt', 'tttttttt', 'tTtttttt', 'tttttttT', 'tttttttt', 'ttttTttt', 'tttttttt'],

@@ -1,30 +1,67 @@
 import { LANGUAGES } from '@algoria/shared';
-import { allLevels, getLevel } from '@algoria/content';
-import { playerLevel, useGame, useLanguage } from '../state/game';
+import type { Stage } from '@algoria/shared';
+import { allLevels, getLevel, stages } from '@algoria/content';
+import { playerLevel, useGame, useLanguage, type Progress } from '../state/game';
+import { ROUTE, type RouteInfo } from '../game/world';
 import { LANGUAGE_INFO } from '../lib/languages';
 import { Sprite } from '../components/Sprite';
 import { Bar } from '../components/ui';
 import { ConfirmReset } from '../components/world/ConfirmReset';
 import '../styles/world.css';
 
-interface RouteStage {
-  n: number;
-  name: string;
-  range: string;
-  topics: string;
-  color: string;
-  badge: string;
+interface RouteEntry extends RouteInfo {
+  pct: number;
+  status: string;
+  /** Etapa con contenido (si no, "PRÓXIMAMENTE"). */
+  real: boolean;
+  current: boolean;
+  badgeEarned: boolean;
 }
 
-/** Etapas 2–7: aún sin contenido. */
-const UPCOMING: RouteStage[] = [
-  { n: 2, name: 'BOSQUE ITERADOR', range: 'Nv 11–20', topics: 'Arreglos y strings, bucles anidados, contar y acumular. Primer vistazo a Big-O.', color: '#2f7a3a', badge: 'HOJA' },
-  { n: 3, name: 'CUEVA RECURSIVA', range: 'Nv 21–30', topics: 'Recursión, ordenamiento, búsqueda binaria y dos punteros.', color: '#7d8399', badge: 'ESPIRAL' },
-  { n: 4, name: 'PUERTO ESTRUCTURA', range: 'Nv 31–40', topics: 'Pilas, colas, mapas, sets y colas de prioridad.', color: '#3a8fb5', badge: 'ANCLA' },
-  { n: 5, name: 'MONTAÑA GRAFO', range: 'Nv 41–50', topics: 'Grafos, BFS, DFS, caminos mínimos y union-find.', color: '#e0483e', badge: 'CUMBRE' },
-  { n: 6, name: 'TORRE DINÁMICA', range: 'Nv 51–60', topics: 'Programación dinámica: memoización, mochila, subsecuencias.', color: '#9b6fd6', badge: 'TORRE' },
-  { n: 7, name: 'COLISEO', range: 'Nv 60+', topics: 'Torneos semanales cronometrados contra otros jugadores, como un contest real.', color: '#f6c945', badge: 'CORONA' },
-];
+function gymDone(stage: Stage, completed: string[]): boolean {
+  const gym = stage.levels.find((l) => l.gym);
+  return !!gym && completed.includes(gym.id);
+}
+
+/** Ruta de Algoria: etapas reales con su progreso y el resto como "PRÓXIMAMENTE". */
+function buildRoute(progress: Progress, currentId: string): RouteEntry[] {
+  const fromContent = (s: Stage, i: number): RouteEntry => {
+    const done = s.levels.filter((l) => progress.completed.includes(l.id)).length;
+    const complete = s.levels.length > 0 && done === s.levels.length;
+    const prev = stages[i - 1];
+    const open = !prev || gymDone(prev, progress.completed);
+    const status = complete
+      ? 'COMPLETADA'
+      : s.id === currentId || done > 0
+        ? 'EN CURSO'
+        : open
+          ? 'DISPONIBLE'
+          : 'BLOQUEADA';
+    return {
+      n: s.number,
+      name: s.name,
+      range: s.range,
+      topics: s.summary,
+      color: s.color,
+      badge: s.badge,
+      pct: s.levels.length ? done / s.levels.length : 0,
+      status,
+      real: true,
+      current: s.id === currentId,
+      badgeEarned: gymDone(s, progress.completed),
+    };
+  };
+  const real = stages.map(fromContent);
+  const soon = ROUTE.filter((r) => !stages.some((s) => s.number === r.n)).map((r) => ({
+    ...r,
+    pct: 0,
+    status: 'PRÓXIMAMENTE',
+    real: false,
+    current: false,
+    badgeEarned: false,
+  }));
+  return [...real, ...soon].sort((a, b) => a.n - b.n);
+}
 
 const LOCKED_COMPANION_TEXT = [
   'Se une a ti al terminar el Pueblo Semilla.',
@@ -38,24 +75,7 @@ export function ProfileScreen() {
 
   const stageDone = stage.levels.filter((l) => progress.completed.includes(l.id)).length;
   const stagePct = stage.levels.length ? stageDone / stage.levels.length : 0;
-  const gym = stage.levels.find((l) => l.gym);
-  const badgeEarned = !!gym && progress.completed.includes(gym.id);
-  const stageComplete = stage.levels.length > 0 && stageDone === stage.levels.length;
-
-  const route: (RouteStage & { pct: number; status: string; current: boolean })[] = [
-    {
-      n: stage.number,
-      name: stage.name,
-      range: stage.range,
-      topics: stage.summary,
-      color: stage.color,
-      badge: stage.badge,
-      pct: stagePct,
-      status: stageComplete ? 'COMPLETADA' : 'EN CURSO',
-      current: true,
-    },
-    ...UPCOMING.map((s) => ({ ...s, pct: 0, status: 'PRÓXIMAMENTE', current: false })),
-  ];
+  const route = buildRoute(progress, stage.id);
 
   const tips = progress.tips
     .map((id) => getLevel(id))
@@ -130,7 +150,7 @@ export function ProfileScreen() {
               </span>
               <ul className="badges" aria-labelledby="badges-title">
                 {route.map((s) => {
-                  const earned = s.current && badgeEarned;
+                  const earned = s.badgeEarned;
                   return (
                     <li
                       key={s.n}
@@ -194,9 +214,16 @@ export function ProfileScreen() {
           </div>
           <ol className="route">
             {route.map((s) => (
-              <li key={s.n} className={`box${s.current ? '' : ' is-soon'}`}>
+              <li
+                key={s.n}
+                className={`box${s.real ? '' : ' is-soon'}`}
+                aria-current={s.current ? 'location' : undefined}
+              >
                 <div className="route__head" style={{ background: s.color }}>
-                  <span className="px route__chip">ETAPA {s.n}</span>
+                  <span className="px route__chip">
+                    ETAPA {s.n}
+                    {s.current ? ' · ESTÁS AQUÍ' : ''}
+                  </span>
                   <span className="px route__chip">{s.range}</span>
                 </div>
                 <div className="route__body">

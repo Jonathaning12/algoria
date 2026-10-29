@@ -67,10 +67,13 @@ describe('ajustes de audio', () => {
 
 describe('trackFor', () => {
   it('elige la canción según la pantalla', () => {
-    expect(trackFor('title')).toBe('title');
-    expect(trackFor('map')).toBe('town');
-    expect(trackFor('lesson')).toBe('town');
-    expect(trackFor('battle')).toBe('battle');
-    expect(trackFor('victory')).toBeNull();
+    expect(trackFor('title', 'pueblo-semilla')).toBe('title');
+    expect(trackFor('map', 'pueblo-semilla')).toBe('town');
+    expect(trackFor('lesson', 'pueblo-semilla')).toBe('town');
+    expect(trackFor('map', 'bosque-iterador')).toBe('forest');
+    expect(trackFor('dialog', 'bosque-iterador')).toBe('forest');
+    expect(trackFor('map', 'etapa-desconocida')).toBe('town');
+    expect(trackFor('battle', 'bosque-iterador')).toBe('battle');
+    expect(trackFor('victory', 'pueblo-semilla')).toBeNull();
   });
 });
