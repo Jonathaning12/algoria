@@ -18,6 +18,16 @@ export type SpriteId =
   | 'rana' | 'kai' | 'lupe' | 'otto' | 'mila' | 'tito' | 'zoe' | 'dante' | 'vera' | 'gym_bosque'
   // Tiles del bosque.
   | 'pine' | 'bush' | 'log' | 'mushroom' | 'bridge'
+  // NPCs de las etapas 3–6: npcNN = nivel NN; el nivel 10 de cada etapa usa gym_*.
+  | 'npc21' | 'npc22' | 'npc23' | 'npc24' | 'npc25' | 'npc26' | 'npc27' | 'npc28' | 'npc29' | 'gym_cueva'
+  | 'npc31' | 'npc32' | 'npc33' | 'npc34' | 'npc35' | 'npc36' | 'npc37' | 'npc38' | 'npc39' | 'gym_puerto'
+  | 'npc41' | 'npc42' | 'npc43' | 'npc44' | 'npc45' | 'npc46' | 'npc47' | 'npc48' | 'npc49' | 'gym_montana'
+  | 'npc51' | 'npc52' | 'npc53' | 'npc54' | 'npc55' | 'npc56' | 'npc57' | 'npc58' | 'npc59' | 'gym_torre'
+  // Tiles: cueva, puerto, montaña, torre.
+  | 'cavewall' | 'stalagmite' | 'crystal'
+  | 'sand' | 'dock' | 'crate' | 'boat'
+  | 'cliff' | 'snow' | 'icerock'
+  | 'brick' | 'carpet' | 'bookshelf'
   | 'grass' | 'tallgrass' | 'path' | 'water' | 'tree' | 'flower' | 'sign' | 'house' | 'rock';
 
 export interface DialogueLine {
@@ -158,10 +168,30 @@ export const TILE_LEGEND = {
   L: 'log',
   m: 'mushroom',
   '#': 'bridge',
+  // Cueva
+  W: 'cavewall',
+  K: 'stalagmite',
+  C: 'crystal',
+  // Puerto
+  ':': 'sand',
+  '|': 'dock',
+  X: 'crate',
+  U: 'boat',
+  // Montaña
+  M: 'cliff',
+  '+': 'snow',
+  I: 'icerock',
+  // Torre
+  Z: 'brick',
+  '%': 'carpet',
+  Q: 'bookshelf',
 } as const satisfies Record<string, SpriteId>;
 
 /** Casillas que bloquean el paso. */
-export const SOLID_TILES = new Set<string>(['~', 'T', 'S', 'H', 'o', 'P', 'B', 'L']);
+export const SOLID_TILES = new Set<string>([
+  '~', 'T', 'S', 'H', 'o', 'P', 'B', 'L',
+  'W', 'K', 'C', 'X', 'U', 'M', 'I', 'Z', 'Q',
+]);
 
 export interface Stage {
   id: string;

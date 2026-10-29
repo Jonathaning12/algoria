@@ -11,6 +11,8 @@ export function trackFor(screen: Screen['name'], stageId: string): TrackId | nul
       return 'title';
     case 'battle':
       return 'battle';
+    case 'coliseo':
+      return 'arena';
     case 'victory':
       // La fanfarria de victoria suena sola; la canción de la etapa vuelve en el mapa.
       return null;

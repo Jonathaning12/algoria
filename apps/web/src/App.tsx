@@ -8,6 +8,7 @@ import { LessonScreen } from './screens/LessonScreen';
 import { BattleScreen } from './screens/BattleScreen';
 import { VictoryScreen } from './screens/VictoryScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
+import { ColiseoScreen } from './screens/ColiseoScreen';
 
 export function App() {
   const { screen, stage } = useGame();
@@ -37,5 +38,7 @@ function CurrentScreen() {
       return <VictoryScreen levelId={screen.levelId} info={screen.info} />;
     case 'profile':
       return <ProfileScreen />;
+    case 'coliseo':
+      return <ColiseoScreen />;
   }
 }

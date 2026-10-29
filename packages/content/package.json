@@ -6,10 +6,12 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./public": "./src/public.ts"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
+    "gen:public": "tsx scripts/build-public.ts",
+    "typecheck": "npm run gen:public && tsc -p tsconfig.json",
     "verify": "tsx scripts/verify.ts"
   },
   "dependencies": {

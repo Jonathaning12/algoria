@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -p tsconfig.json && vite build",
+    "gen": "npm --prefix ../../packages/content run gen:public",
+    "dev": "npm run gen && vite",
+    "build": "npm run gen && tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "typecheck": "npm run gen && tsc -p tsconfig.json",
+    "test": "npm run gen && vitest run"
   },
   "dependencies": {
     "@algoria/content": "*",

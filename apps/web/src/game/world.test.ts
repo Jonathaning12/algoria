@@ -267,6 +267,101 @@ describe('viajes entre etapas', () => {
   });
 });
 
+/* ---------- N etapas (3–6 falsas), con back al sur y exit al norte ---------- */
+
+function fakeStage(
+  number: number,
+  name: string,
+  rows: string[],
+  spawn: { x: number; y: number },
+  gate: { exit?: { x: number; y: number }; back?: { x: number; y: number } },
+  levels: Level[],
+): Stage {
+  return {
+    id: `etapa-${number}`,
+    number,
+    name,
+    range: '',
+    summary: '',
+    badge: 'X',
+    color: '#000',
+    levels,
+    map: {
+      rows,
+      spawn,
+      signs: [],
+      extraNpcs: [],
+      ...(gate.exit ? { exit: { ...gate.exit, lockedText: `Cerrado ${number}` } } : {}),
+      ...(gate.back ? { back: gate.back } : {}),
+    },
+  };
+}
+
+describe('viajes con N etapas', () => {
+  // Cueva: salida al este. Puerto: vuelta al oeste, salida al sur.
+  // Montaña: vuelta al norte, salida al norte también no; salida al este.
+  // Torre: vuelta al SUR y salida al NORTE (como la torre real).
+  const cave = fakeStage(3, 'CUEVA RECURSIVA', ['WWWWW', 'W   =', 'WWWWW'], { x: 1, y: 1 }, { exit: { x: 4, y: 1 } }, [level(30, 2, 1, true)]);
+  const port = fakeStage(4, 'PUERTO ESTRUCTURA', ['XXXXX', '=   X', 'XX=XX'], { x: 1, y: 1 }, { back: { x: 0, y: 1 }, exit: { x: 2, y: 2 } }, [level(40, 3, 1, true)]);
+  const mountain = fakeStage(5, 'MONTAÑA GRAFO', ['MM=MM', 'M   =', 'MMMMM'], { x: 2, y: 1 }, { back: { x: 2, y: 0 }, exit: { x: 4, y: 1 } }, [level(50, 1, 1, true)]);
+  const tower = fakeStage(6, 'TORRE DINÁMICA', ['ZZ=ZZ', 'Z % Z', 'Z % Z', 'ZZ=ZZ'], { x: 2, y: 2 }, { back: { x: 2, y: 3 }, exit: { x: 2, y: 0 } }, [level(60, 1, 1, true)]);
+  const route = [cave, port, mountain, tower];
+  const all = route.flatMap((s) => s.levels);
+  const done = all.map((l) => l.id);
+  const go = (s: Stage, from: { x: number; y: number }, dir: 'up' | 'down' | 'left' | 'right', completed = done) =>
+    move(route, s, worldNpcs(s), { ...from, dir }, dir, completed);
+
+  it('cada salida abierta lleva al spawn de la siguiente', () => {
+    expect(go(cave, { x: 3, y: 1 }, 'right').travel).toMatchObject({ stage: { id: 'etapa-4' }, pos: { x: 1, y: 1, dir: 'right' } });
+    expect(go(port, { x: 2, y: 1 }, 'down').travel).toMatchObject({ stage: { id: 'etapa-5' }, pos: { x: 2, y: 1, dir: 'down' } });
+    expect(go(mountain, { x: 3, y: 1 }, 'right').travel).toMatchObject({ stage: { id: 'etapa-6' }, pos: { x: 2, y: 2, dir: 'right' } });
+  });
+
+  it('las salidas siguen cerradas sin el gimnasio', () => {
+    expect(go(port, { x: 2, y: 1 }, 'down', [])).toMatchObject({ moved: false, reason: 'exit' });
+  });
+
+  it('cada back lleva junto a la salida de la anterior, mirando hacia dentro', () => {
+    expect(go(port, { x: 1, y: 1 }, 'left').travel).toMatchObject({ stage: { id: 'etapa-3' }, pos: { x: 3, y: 1, dir: 'left' } });
+    expect(go(mountain, { x: 2, y: 1 }, 'up').travel).toMatchObject({ stage: { id: 'etapa-4' }, pos: { x: 2, y: 1, dir: 'up' } });
+    // Back al sur en la torre → junto a la salida este de la montaña.
+    expect(go(tower, { x: 2, y: 2 }, 'down').travel).toMatchObject({ stage: { id: 'etapa-5' }, pos: { x: 3, y: 1, dir: 'left' } });
+  });
+
+  it('la salida al norte de la última etapa dice "Próximamente: Coliseo"', () => {
+    const r = go(tower, { x: 2, y: 1 }, 'up');
+    expect(r).toMatchObject({ moved: false, reason: 'soon', pos: { x: 2, y: 1, dir: 'up' } });
+    if (r.moved === false && r.reason === 'soon') expect(r.text).toBe('Próximamente: Coliseo. El camino aún no está listo.');
+    expect(go(tower, { x: 2, y: 1 }, 'up', [])).toMatchObject({ moved: false, reason: 'exit' });
+  });
+
+  it('volver a una etapa con la salida al norte deja al jugador debajo, mirando al sur', () => {
+    const tower2 = fakeStage(6, 'TORRE DINÁMICA', tower.map.rows, tower.map.spawn, { back: tower.map.back, exit: tower.map.exit }, tower.levels);
+    const above = fakeStage(7, 'COLISEO', ['Z=Z', 'Z Z', 'ZZZ'], { x: 1, y: 1 }, { back: { x: 1, y: 0 } }, []);
+    const r = move([tower2, above], above, [], { x: 1, y: 1, dir: 'up' }, 'up', []);
+    expect(r.travel).toMatchObject({ stage: { id: 'etapa-6' }, pos: { x: 2, y: 1, dir: 'down' } });
+  });
+
+  it('textos de misión con varias etapas', () => {
+    expect(missionElsewhere(route, cave, tower.levels[0]!)).toBe('Cruza al este hacia la Torre Dinámica. Allí te espera NPC60 (Nv 60).');
+    expect(missionElsewhere(route, tower, cave.levels[0]!)).toBe(
+      'Vuelve a la Cueva Recursiva por el camino del sur. Allí te espera NPC30 (Nv 30).',
+    );
+  });
+
+  it('fondos propios para las etapas 3–6', () => {
+    for (const id of ['cueva-recursiva', 'puerto-estructura', 'montana-grafo', 'torre-dinamica']) {
+      expect(groundOf({ id }), id).not.toEqual(groundOf({ id: 'desconocida' }));
+    }
+  });
+
+  it('examinar tiles nuevos', () => {
+    const m = examine(tower, worldNpcs(tower), { x: 3, y: 1, dir: 'right' }, [], all, route);
+    expect(m?.text).toContain('ladrillo');
+    expect(examine(tower, worldNpcs(tower), { x: 2, y: 1, dir: 'up' }, done, all, route)?.text).toContain('Coliseo');
+  });
+});
+
 describe('migración de partidas', () => {
   const first = contentStages[0]!.id;
 

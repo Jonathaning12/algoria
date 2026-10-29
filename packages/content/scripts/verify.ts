@@ -9,6 +9,7 @@ import { LANGUAGES, SOLID_TILES, TILE_LEGEND } from '@algoria/shared';
 import type { Language, RunResponse, Stage, TestCase, Verdict } from '@algoria/shared';
 import { judge } from '@algoria/judge';
 import { stages } from '../src/index';
+import { ALL_NAIVE, type NaiveSolution } from './naive';
 
 const LOCAL = process.argv.includes('--local');
 /** --niveles=11-20 (o --niveles=18) ejecuta solo esos niveles; la validación estructural siempre es completa. */
@@ -249,38 +250,7 @@ interface Job {
  * Soluciones ingenuas que DEBEN dar TLE en algún test oculto (y nunca WA/RE): garantizan que el problema
  * exige la idea eficiente. Viven solo aquí, no en el contrato.
  */
-const MUST_TLE: { problemId: string; language: Language; idea: string; code: string }[] = [
-  {
-    problemId: 'p18-ronda-de-dante',
-    language: 'cpp',
-    idea: 'sumar cada ventana desde cero, O(n·k)',
-    code: `#include <iostream>
-#include <vector>
-using namespace std;
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    int n, k;
-    cin >> n >> k;
-    vector<long long> a(n);
-    for (int i = 0; i < n; i++) cin >> a[i];
-    long long mejor = -1;
-    int dia = 1;
-    for (int i = 0; i + k <= n; i++) {
-        long long s = 0;
-        for (int j = i; j < i + k; j++) s += a[j];
-        if (s > mejor) {
-            mejor = s;
-            dia = i + 1;
-        }
-    }
-    cout << mejor << "\\n" << dia << "\\n";
-    return 0;
-}
-`,
-  },
-];
+const MUST_TLE: NaiveSolution[] = ALL_NAIVE;
 
 const inRange = (n: number) => !RANGE || (n >= RANGE.from && n <= RANGE.to);
 

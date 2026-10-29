@@ -10,6 +10,16 @@ export const PALETTE: Record<string, string> = {
   T: '#cdb67a', v: '#9b6fd6', V: '#5e3f96',
   // Bosque: verde de pino muy oscuro y rosa para vestidos y flores.
   D: '#1d4f2a', q: '#f29bb4',
+  // Cueva: roca oscura y cristal magenta.
+  a: '#3b394d', A: '#26243a', m: '#d65aa8',
+  // Piel morena (variantes de NPC).
+  j: '#b9784d', J: '#8a5434',
+  // Puerto: arena.
+  f: '#f0d9a0', F: '#d4b46e',
+  // Montaña: nieve y hielo.
+  i: '#eef5fc', I: '#c4d8ee',
+  // Torre: ladrillo.
+  z: '#a0523d', Z: '#743527',
 };
 
 /**
@@ -20,7 +30,196 @@ function asym(left: string[], right: Record<number, string>): string[] {
   return left.map((row, i) => row + (right[i] ?? [...row].reverse().join('')));
 }
 
+/* ---------- Variantes de NPC (etapas 3–6) ----------
+ * Un NPC = cabeza (filas 0–8) + cuerpo (filas 9–15), ambos como mitades de 8 que se reflejan.
+ * Los dígitos son "roles" que cada NPC pinta con su paleta:
+ *   1 sombrero/pelo principal · 2 ala o cinta del sombrero · 3 ropa · 4 sombra de ropa o capa
+ *   5 piernas · 6 acento (lámpara, botones, estrella) · 7 pelo bajo el sombrero · 8 forro de capa
+ *   9 piel · 0 sombra de piel
+ * Encima se dibujan accesorios (`px`): [fila, columna, texto]; '.' en el texto deja lo que había.
+ */
+const HEADS = {
+  hair: ['........', '....kkkk', '...k7777', '..k77777', '..k77777', '..k79999', '..k79k99', '..k79999', '...k0999'],
+  longhair: ['........', '....kkkk', '...k7777', '..k77777', '.k777777', '.k779999', '.k779k99', '.k779999', '.k7k0999'],
+  bun: ['......kk', '.....k77', '....kk77', '...k7777', '..k77777', '..k79999', '..k79k99', '..k79999', '...k0999'],
+  helmet: ['........', '....kkkk', '...k1111', '..k11166', '..k11166', '.kk22222', '..k79k99', '..k79999', '...k0999'],
+  beanie: ['......k6', '.....k11', '....k121', '...k1111', '..k22222', '..k79999', '..k79k99', '..k79999', '...k0999'],
+  sailor: ['........', '........', '....kkkk', '...k1111', '..k11111', '..k22222', '..k79k99', '..k79999', '...k0999'],
+  hat: ['........', '.....kkk', '....k111', '...k1111', '.k222222', '..k79999', '..k79k99', '..k79999', '...k0999'],
+  bandana: ['........', '....kkkk', '...k1111', '..k11611', '..k11111', '..k79999', '..k79k99', '..k79999', '...k0999'],
+  captain: ['...kkkkk', '..k11111', '.k111116', 'k1111111', 'k2222222', '..k79999', '..k79k99', '..k79999', '...k0999'],
+  hood: ['.....kkk', '....k111', '...k1111', '..k11111', '..k11111', '..k19999', '..k19k99', '..k19999', '..k1k099'],
+  wizard: ['........', '.......k', '......k1', '.....k16', '....k111', '.k222222', '..k79k99', '..k79999', '...k0999'],
+  tallhat: ['.......k', '......k1', '......k1', '.....k16', '.....k11', '.k222222', '..k79k99', '..k79999', '...k0999'],
+} satisfies Record<string, string[]>;
+
+const BODIES = {
+  shirt: ['...kk333', '..k33333', '.k943333', '.k9k3333', '..kk5555', '...k55k.', '...kkkk.'],
+  overalls: ['...kk333', '..k34444', '.k944444', '.k9k4464', '..kk4444', '...k55k.', '...kkkk.'],
+  dress: ['...kk333', '..k33333', '.k933333', '.k9k3333', '..k44444', '...k99k.', '...kkkk.'],
+  robe: ['...kk336', '..k33336', '.k933336', '.k9k3336', '..k33336', '..k44444', '..kkkkkk'],
+  coat: ['...kk333', '..k33336', '.k943333', '.k9k3336', '..k33333', '...k55k.', '...kkkk.'],
+  cape: ['k44kk333', 'k48k3333', 'k4893333', 'k48k3333', 'k44k5555', 'k44k55k.', 'kkkkkkk.'],
+  apron: ['...kk333', '..k36666', '.k936666', '.k9k6666', '..kk6666', '...k55k.', '...kkkk.'],
+  stripes: ['...kk333', '..kwwwww', '.k933333', '.k9kwwww', '..kk5555', '...k55k.', '...kkkk.'],
+  big: ['..kkk333', '.k333333', 'k9433333', 'k9k33333', '.kk55555', '..k555k.', '..kkkkk.'],
+} satisfies Record<string, string[]>;
+
+type Px = [y: number, x: number, text: string];
+
+interface PersonSpec {
+  head: keyof typeof HEADS;
+  body: keyof typeof BODIES;
+  /** Rol (dígito) → color de PALETTE. Por defecto: piel clara y piernas oscuras. */
+  colors: Partial<Record<string, string>>;
+  px?: Px[];
+}
+
+const ROLE_DEFAULTS: Record<string, string> = { '9': 's', '0': 'S', '5': 'p', '7': 'h', '8': 'R', '6': 'y' };
+
+function person({ head, body, colors, px = [] }: PersonSpec): string[] {
+  const grid = [...HEADS[head], ...BODIES[body]].map((row) => [...row, ...[...row].reverse()]);
+  for (const [y, x, text] of px) {
+    [...text].forEach((ch, i) => {
+      if (ch !== '.' && grid[y] && x + i < 16) grid[y]![x + i] = ch;
+    });
+  }
+  const pal: Record<string, string> = { ...ROLE_DEFAULTS, ...colors } as Record<string, string>;
+  return grid.map((row) => row.map((ch) => (/\d/.test(ch) ? (pal[ch] ?? 'k') : ch)).join(''));
+}
+
+/** Rectángulo de un solo color como accesorio. */
+function rect(ch: string, x: number, y: number, w: number, h: number): Px[] {
+  return Array.from({ length: h }, (_, i): Px => [y + i, x, ch.repeat(w)]);
+}
+
+// Accesorios reutilizables.
+const BEARD = (c = 'w'): Px[] => [[8, 4, c.repeat(8)], [9, 5, c.repeat(6)]];
+const LONG_BEARD: Px[] = [[8, 4, 'wwwwwwww'], [9, 5, 'wwwwww'], [10, 5, 'wwwwww'], [11, 6, 'wwww'], [12, 7, 'ww']];
+const PICKAXE = (head = 'E'): Px[] => [...rect('N', 14, 7, 1, 7), [6, 12, head.repeat(4)], [7, 12, head], [7, 15, head]];
+const LANTERN: Px[] = [[11, 14, 'k'], [12, 13, 'kkk'], [13, 13, 'kyk'], [14, 13, 'kkk']];
+const ROPE_COIL: Px[] = [[10, 11, 'tttt'], [11, 11, 'T..T'], [12, 11, 'tttt']];
+const ROPE_SASH: Px[] = [[9, 10, 'T'], [10, 9, 'T'], [11, 8, 'T'], [12, 7, 'T'], [13, 6, 'T']];
+const GOGGLES = (lens: string): Px[] => [[6, 3, `k${lens}${lens}kkkk${lens}${lens}k`]];
+const GLASSES: Px[] = [[6, 4, 'kckkkkck']];
+const STAFF = (top: Px[] = []): Px[] => [...rect('N', 14, 4, 1, 12), ...top];
+const BOOK = (cover: string): Px[] => [[11, 5, cover.repeat(6)], [12, 5, 'www' + 'ttt'], [11, 8, 'k'], [12, 8, 'k']];
+const FLASK = (liquid: string): Px[] => [[9, 14, 'w'], [10, 13, 'kwk'], [11, 12, `k${liquid}${liquid}${liquid}`], [12, 12, `k${liquid}${liquid}${liquid}`], [13, 13, 'kkk']];
+const FISH: Px[] = [[12, 11, 'kCCCk'], [13, 11, 'kcwCC'], [14, 12, 'kkk']];
+const MAP_SHEET: Px[] = [[11, 4, 'kttttttk'], [12, 4, 'ktTtrttk'], [13, 4, 'kkkkkkkk']];
+const SPYGLASS: Px[] = [[5, 11, 'kkkkk'], [6, 11, 'Yyyyy'], [7, 11, 'kkkkk']];
+
+/** Sprite simétrico de 8 columnas cuyo lado derecho se sombrea con otros colores. */
+function shaded(left: string[], swap: Record<string, string>): string[] {
+  return left.map((row) => row + [...row].reverse().map((ch) => swap[ch] ?? ch).join(''));
+}
+
+const STAGE_SPRITES = {
+  /* ---- Cueva Recursiva (Nv 21–29): mineros, espeleólogas y un murciélago ---- */
+  npc21: person({ head: 'helmet', body: 'overalls', colors: { 1: 'y', 2: 'Y', 6: 'w', 3: 'r', 4: 'B', 5: 'N' }, px: LANTERN }),
+  npc22: person({ head: 'helmet', body: 'shirt', colors: { 1: 'o', 2: 'R', 6: 'c', 7: 'H', 3: 'G', 4: 'D' }, px: ROPE_COIL }),
+  // Murciélago amable: alas abiertas, ojos grandes y colmillos de sonrisa.
+  npc23: ['........', '........', '....k...', '....kvkk', 'kk..kvvv', 'kVk.kvwk', 'kVVkkvvv', 'kVVVvvvq', 'kVvVvvvw', '.kVvVvvv', '..kVkvvv', '...k.kvv', '.....kvv', '......kk', '........', '........'],
+  npc24: person({ head: 'helmet', body: 'overalls', colors: { 1: 'e', 2: 'E', 6: 'y', 7: 'e', 3: 'e', 4: 'N', 5: 'p' }, px: [...BEARD(), ...PICKAXE()] }),
+  npc25: person({ head: 'bun', body: 'apron', colors: { 7: 'o', 3: 'C', 6: 't', 5: 'N' }, px: [[10, 13, 'kck'], [11, 12, 'kcmck'], [12, 13, 'kmk']] }),
+  npc26: person({ head: 'hat', body: 'shirt', colors: { 1: 't', 2: 'T', 7: 'N', 3: 'y', 4: 'Y', 5: 'n', 9: 'j', 0: 'J' }, px: [[8, 14, 'o'], [9, 14, 'y'], ...rect('N', 14, 10, 1, 4)] }),
+  npc27: person({ head: 'longhair', body: 'dress', colors: { 7: 'H', 3: 'C', 4: 'B' }, px: MAP_SHEET }),
+  npc28: person({ head: 'bandana', body: 'big', colors: { 1: 'R', 6: 'r', 7: 'H', 3: 'E', 4: 'p', 5: 'N', 9: 'j', 0: 'J' }, px: PICKAXE('e') }),
+  npc29: person({ head: 'helmet', body: 'shirt', colors: { 1: 'w', 2: 'e', 6: 'y', 7: 'h', 3: 'v', 4: 'V' }, px: GOGGLES('c') }),
+  // Líder del Gimnasio Espiral: casco de cristal y capa de roca.
+  gym_cueva: person({
+    head: 'helmet',
+    body: 'cape',
+    colors: { 1: 'c', 2: 'C', 6: 'm', 7: 'H', 3: 'e', 4: 'A', 8: 'V', 5: 'a' },
+    px: [[0, 3, 'kc.kmmk.ck'], [1, 3, 'kckmmmmkck'], [10, 7, 'mm'], [11, 7, 'cc']],
+  }),
+
+  /* ---- Puerto Estructura (Nv 31–39): marineros, pescadores, estibadores y una gaviota ---- */
+  npc31: person({ head: 'sailor', body: 'stripes', colors: { 1: 'w', 2: 'B', 7: 'y', 3: 'B', 5: 'b' } }),
+  npc32: person({ head: 'hat', body: 'coat', colors: { 1: 'y', 2: 'Y', 7: 'h', 3: 'y', 4: 'Y', 6: 'Y', 5: 'B' }, px: FISH }),
+  npc33: person({
+    head: 'bandana',
+    body: 'big',
+    colors: { 1: 'b', 6: 'w', 7: 'H', 3: 'o', 4: 'N', 5: 'B', 9: 'j', 0: 'J' },
+    px: [[3, 11, 'kkkkk'], [4, 11, 'knnnk'], [5, 11, 'kNnNk'], [6, 11, 'knnnk'], [7, 11, 'kkkkk']],
+  }),
+  // Capitana: gorra blanca de visera y melena naranja.
+  npc34: person({ head: 'captain', body: 'coat', colors: { 1: 'w', 2: 'B', 6: 'y', 7: 'o', 3: 'b', 4: 'B', 5: 'B' }, px: [...rect('o', 2, 5, 1, 5), ...rect('o', 13, 5, 1, 5)] }),
+  // Gaviota de perfil, mirando a la izquierda.
+  npc35: ['................', '................', '................', '......kkk.......', '.....kwwwk......', '....kwkwwwk.....', '..kkywwwwwk.....', '.kyyykwwwwk.....', '..kk.kwwwwwkkk..', '.....kwwweeeeEk.', '....kwwwweeeEEk.', '....kwwwwwweEk..', '.....kwwwwwwkk..', '......kkkkkk....', '.......ko.ko....', '.......kk.kk....'],
+  npc36: person({ head: 'bun', body: 'apron', colors: { 7: 'h', 3: 'r', 6: 'w', 5: 'p', 9: 'j', 0: 'J' }, px: [[11, 5, 'kCCk'], [12, 5, 'kccw']] }),
+  npc37: person({ head: 'helmet', body: 'shirt', colors: { 1: 'g', 2: 'G', 6: 'g', 7: 'N', 3: 'l', 4: 'g', 5: 'N' }, px: SPYGLASS }),
+  npc38: person({ head: 'bandana', body: 'stripes', colors: { 1: 'r', 6: 'w', 7: 'y', 3: 'r', 5: 'n' } }),
+  npc39: person({ head: 'beanie', body: 'big', colors: { 1: 'C', 2: 'B', 6: 'C', 7: 'e', 3: 'G', 4: 'D', 5: 'p' }, px: [...BEARD('e'), [8, 11, 'kN'], [7, 12, 'kNk']] }),
+  // Líder del Gimnasio Ancla: capitán con sombrero de capitán, abrigo largo y charreteras.
+  gym_puerto: person({
+    head: 'captain',
+    body: 'cape',
+    colors: { 1: 'B', 2: 'H', 6: 'y', 7: 'e', 3: 'b', 4: 'B', 8: 'R', 5: 'H' },
+    px: [...BEARD('e'), [9, 0, 'kyy'], [9, 13, 'yyk'], [10, 7, 'yy'], [12, 7, 'yy']],
+  }),
+
+  /* ---- Montaña Grafo (Nv 41–49): escaladores, guías, pastoras y un yeti ---- */
+  npc41: person({ head: 'beanie', body: 'shirt', colors: { 1: 'r', 2: 'w', 6: 'w', 7: 'h', 3: 'o', 4: 'R', 5: 'B' }, px: [[9, 2, 'k'], [10, 1, 'kNN'], [11, 1, 'kN'], [12, 1, 'kNN']] }),
+  npc42: person({ head: 'beanie', body: 'overalls', colors: { 1: 'G', 2: 'g', 6: 'y', 7: 'N', 3: 'y', 4: 'b', 5: 'B' }, px: [...ROPE_SASH, ...ROPE_COIL] }),
+  npc43: person({
+    head: 'longhair',
+    body: 'dress',
+    colors: { 7: 'y', 3: 'r', 4: 'w' },
+    px: [...rect('N', 14, 4, 1, 12), [2, 13, 'NNk'], [3, 15, 'N']],
+  }),
+  // Yeti amable: pelaje blanco, cara azul y sonrisa.
+  npc44: ['........', '....kkkk', '...kwwww', '..kwwwww', '..kwcccc', '.kwccccc', '.kwckccc', '.kwccccc', 'kwwccckk', 'kwwwwwww', 'kwekwwww', 'kwekwwww', 'kcckwwww', '.kkwwwww', '..kwwkkk', '..kkkk..'],
+  npc45: person({ head: 'beanie', body: 'coat', colors: { 1: 'v', 2: 'V', 6: 'w', 7: 'H', 3: 'c', 4: 'C', 5: 'p' }, px: PICKAXE('c') }),
+  npc46: person({ head: 'hood', body: 'robe', colors: { 1: 'n', 3: 'n', 4: 'N', 6: 'N' }, px: BEARD() }),
+  npc47: person({ head: 'beanie', body: 'stripes', colors: { 1: 'b', 2: 'y', 6: 'y', 7: 'h', 3: 'b', 5: 'B' }, px: GOGGLES('o') }),
+  npc48: person({ head: 'bun', body: 'coat', colors: { 7: 'N', 3: 'g', 4: 'G', 6: 'y', 5: 'h', 9: 'j', 0: 'J' }, px: MAP_SHEET }),
+  npc49: person({ head: 'beanie', body: 'big', colors: { 1: 'E', 2: 'e', 6: 'w', 7: 'e', 3: 'N', 4: 'h', 5: 'p' }, px: [...BEARD(), ...ROPE_COIL] }),
+  // Líder del Gimnasio Cumbre: capa de nieve y bastón con punta de hielo.
+  gym_montana: person({
+    head: 'hood',
+    body: 'cape',
+    colors: { 1: 'i', 3: 'C', 4: 'i', 8: 'I', 5: 'B' },
+    px: [[1, 13, 'kck'], [2, 13, 'kck'], [3, 14, 'k'], ...STAFF()],
+  }),
+
+  /* ---- Torre Dinámica (Nv 51–59): magos, bibliotecarias, alquimistas y un búho ---- */
+  npc51: person({ head: 'wizard', body: 'robe', colors: { 1: 'b', 2: 'B', 6: 'y', 7: 'h', 3: 'b', 4: 'B' } }),
+  npc52: person({ head: 'longhair', body: 'dress', colors: { 7: 'h', 3: 'G', 4: 'D' }, px: [...GLASSES, [10, 11, 'kkkk'], [11, 11, 'rrrr'], [12, 11, 'bbbb'], [13, 11, 'yyyy']] }),
+  npc53: person({ head: 'hood', body: 'robe', colors: { 1: 'g', 3: 'g', 4: 'G', 6: 'n' }, px: FLASK('m') }),
+  // Búho sabio: penachos, ojos grandes y pecho moteado.
+  npc54: ['........', '..k.....', '..kk.kkk', '..knknnn', '..kwwwnn', '.knwkwnn', '.knwwwny', '.knnnnny', '.kNnnttt', 'kNnnttTt', 'kNnntttt', 'kNnntTtt', '.kNntttt', '..kNnnnn', '....kyky', '....kkkk'],
+  npc55: person({ head: 'wizard', body: 'robe', colors: { 1: 'r', 2: 'R', 6: 'y', 7: 'o', 3: 'r', 4: 'R' } }),
+  npc56: person({ head: 'bun', body: 'robe', colors: { 7: 'e', 3: 't', 4: 'T', 6: 'N' }, px: [...GLASSES, [9, 14, 'w'], [10, 13, 'w'], [11, 13, 'k']] }),
+  npc57: person({ head: 'hair', body: 'apron', colors: { 7: 'o', 3: 'c', 6: 'n', 5: 'p', 9: 'j', 0: 'J' }, px: [...GOGGLES('y'), ...FLASK('l')] }),
+  npc58: person({ head: 'wizard', body: 'robe', colors: { 1: 'C', 2: 'B', 6: 'y', 7: 'H', 3: 'C', 4: 'B' }, px: [[10, 5, 'y'], [12, 10, 'y']] }),
+  npc59: person({ head: 'hood', body: 'robe', colors: { 1: 'E', 3: 'E', 4: 'p', 6: 'w' }, px: [...BEARD(), ...BOOK('R')] }),
+  // Líder del Gimnasio Torre: archimago con sombrero alto, túnica morada, barba larga y bastón con orbe.
+  gym_torre: person({
+    head: 'tallhat',
+    body: 'robe',
+    colors: { 1: 'v', 2: 'V', 6: 'y', 7: 'e', 3: 'v', 4: 'V' },
+    px: [...LONG_BEARD, [2, 13, 'kkk'], [3, 13, 'kmk'], [4, 13, 'kmk'], [5, 13, 'kkk'], ...rect('N', 14, 6, 1, 10)],
+  }),
+
+  /* ---- Tiles de las etapas 3–6 ---- */
+  cavewall: ['aaaaaaAaaaaaaaaa', 'aEEaaaAaaaEEaaaa', 'aEaaaaAaaaEaaaaa', 'aaaaaaAaaaaaaaaa', 'aaaaaAAaaaaaaaaA', 'AAAAAAaAAAAAAAAA', 'aaaAaaaaaaaaAaaa', 'aEaAaaaEEaaaAaEa', 'aaaAaaaEaaaaAaaa', 'aaaAaaaaaaaaAaaa', 'AAAAAAAAAAAAAAAA', 'aaaaaaaAaaaaaaaa', 'aaEEaaaAaaaaEaaa', 'aaEaaaaAaaaaaaaa', 'aaaaaaaAaaaaaaaa', 'AAAAAAAAAAAAAAAA'],
+  stalagmite: shaded(['........', '........', '.......k', '......ke', '......ke', '.....kea', '.....kea', '.....kEa', '....kEaa', '....keaa', '...kEaaa', '...kEaaa', '..kEaaaa', '.kEEaaaa', 'kkkkkkkk', '........'], { e: 'a', E: 'A', a: 'A' }),
+  crystal: ['................', '......k.........', '.....kck........', '.....kwck.......', '....kcwck..k....', '....kcwcCkkmk...', '.k..kcwcCkkwmk..', 'kck.kcwcCkkwmVk.', 'kwck.kccCkkwmVk.', 'kwcCkkccCkkmmVk.', '.kcCkkccCkmmVk..', '.kcCkkcCCkmmVk..', '..kkaakkkaaakk..', '.kaaaaaaaaaaaak.', '..kkkkkkkkkkkk..', '................'],
+  sand: ['ffffffff', 'ffFfffff', 'ffffffff', 'fffffFff', 'ffffffff', 'fFffffff', 'ffffffff', 'ffffffFf', 'ffffffff', 'fffFffff', 'ffffffff', 'ffffffff', 'fFffffFf', 'ffffffff', 'ffffFfff', 'ffffffff'],
+  dock: ['NnnnNnnnNnnnNnnn', 'NnnnNnnnNnnnNnnn', 'NnnnNnnnNnnnNnnn', 'NnknNnnnNnnnNnkn', 'NnnnNnnnNnnnNnnn', 'NnnnNNNNNnnnNnnn', 'NnnnNnknNnnnNnnn', 'NntnNnnnNntnNnnn', 'NnnnNnnnNnnnNnnn', 'NnnnNnnnNnknNnnn', 'NNNNNnnnNnnnNnnn', 'NnknNnnnNnnnNnnn', 'NnnnNnnnNNNNNnnn', 'NnnnNnnnNnnnNnnn', 'NnnnNntnNnnnNntn', 'NnnnNnnnNnnnNnnn'],
+  crate: ['................', '................', '.kkkkkkkkkkkkkk.', '.kNNNNNNNNNNNNk.', '.kNtnnnnnnnntNk.', '.kNntnnnnnntnNk.', '.kNnntnnnntnnNk.', '.kNnnntnntnnnNk.', '.kNnnnnttnnnnNk.', '.kNnnnnttnnnnNk.', '.kNnnntnntnnnNk.', '.kNnntnnnntnnNk.', '.kNntnnnnnntnNk.', '.kNNNNNNNNNNNNk.', '.kkkkkkkkkkkkkk.', '................'],
+  boat: ['................', '.......N........', '.......Nk.......', '.......Nwk......', '.......Nwwk.....', '.......Nwwwk....', '.......Nwwwwk...', '.......Nkkkkkk..', '.......N........', 'kkkkkkkkkkkkkkkk', 'krrrrrrrrrrrrrrk', '.kwwwwwwwwwwwwk.', '..kRRRRRRRRRRk..', '...kkkkkkkkkk...', '................', '................'],
+  cliff: ['EEEeEEEEEEEEeEEE', 'EeeEEEEpEEEeeEEE', 'EEEEEEppEEEEEEEE', 'pppEEEpEEEEEEppp', 'EEEppppEEEpppEEE', 'EeEEEEEEpppEEEeE', 'EEEEEEEEEEEEEEEE', 'EEEEeEEEEEeeEEEE', 'pEEEEEEpEEEEEEEp', 'ppppEEEppEEEpppp', 'EEEppppEEppppEEE', 'EeEEEEEEEEEEEEeE', 'EEEEEeeEEEEEEEEE', 'EEEEEEEEEEpEEEEE', 'pppEEEEEEppppEEE', 'EEpppppppEEEEppp'],
+  snow: ['iiiiiiiiiiiiiiii', 'iiIiiiiiiiiiiwii', 'iiiiiiiiiiiiiiii', 'iiiiiiwiiiIiiiii', 'iiiiiiiiiiiiiiii', 'iIiiiiiiiiiiiiIi', 'iiiiiiiiiwiiiiii', 'iiiiIiiiiiiiiiii', 'iiiiiiiiiiiiiiii', 'iiwiiiiiiiiIiiii', 'iiiiiiiiiiiiiiii', 'iiiiiiIiiiiiiiwi', 'iiiiiiiiiiiiiiii', 'iIiiiiiiiwiiiiii', 'iiiiiiiiiiiiIiii', 'iiiiiiiiiiiiiiii'],
+  icerock: shaded(['........', '........', '........', '........', '.....kkk', '....kicc', '...kiwcc', '..kiiccc', '..kicccc', '.kiccccc', '.kcccccc', '.kccCccc', '.kCCCCCC', '..kkkkkk', '........', '........'], { i: 'c', w: 'c', c: 'C', C: 'B' }),
+  brick: ['EEEEEEEEEEEEEEEE', 'zzzzzzzEzzzzzzzE', 'zzzzzzzEzzzzzzzE', 'ZZZZZZZEZZZZZZZE', 'EEEEEEEEEEEEEEEE', 'zzzEzzzzzzzEzzzz', 'zzzEzzzzzzzEzzzz', 'ZZZEZZZZZZZEZZZZ', 'EEEEEEEEEEEEEEEE', 'zzzzzzzEzzzzzzzE', 'zzzzzzzEzzzzzzzE', 'ZZZZZZZEZZZZZZZE', 'EEEEEEEEEEEEEEEE', 'zzzEzzzzzzzEzzzz', 'zzzEzzzzzzzEzzzz', 'ZZZEZZZZZZZEZZZZ'],
+  carpet: ['RRRRRRRR', 'RYYYYYYY', 'RYrrrrrr', 'RYrrrrrr', 'RYrrrrrr', 'RYrrrrrR', 'RYrrrrRy', 'RYrrrRyY', 'RYrrrRyY', 'RYrrrrRy', 'RYrrrrrR', 'RYrrrrrr', 'RYrrrrrr', 'RYrrrrrr', 'RYYYYYYY', 'RRRRRRRR'],
+  bookshelf: ['kkkkkkkkkkkkkkkk', 'kNNNNNNNNNNNNNNk', 'kNNNbNNGvNNcbNNk', 'kNrrbyyGvvrcbNNk', 'kNrrbyyGvvrcbtNk', 'kNRrByYGVvRcBtNk', 'kNrrbyyGvvrcbtNk', 'knnnnnnnnnnnnnnk', 'kNNyNNNNcNNNNNNk', 'kNbyrrGlcqqrvNNk', 'kNbyrrGlcqqrvbNk', 'kNbyrrGlcqqrvbNk', 'kNBYRrGlCqqRVbNk', 'knnnnnnnnnnnnnnk', 'kNNNNNNNNNNNNNNk', 'kkkkkkkkkkkkkkkk'],
+} satisfies Partial<Record<SpriteId, string[]>>;
+
 export const SPRITES: Record<SpriteId, string[]> = {
+  ...STAGE_SPRITES,
   hero_down: ['.....kkk', '....krrr', '...krrrw', '...krrrr', '..kRRRRR', '..khssss', '..khskss', '..khssss', '...kSsss', '...kkbbb', '..kbbbbb', '.ksBbbbb', '.kskbbbb', '..kkpppp', '...kppk.', '...kkkk.'],
   hero_up: ['.....kkk', '....krrr', '...krrrr', '...krrrr', '..kRRRRR', '..khhhhh', '..khhhhh', '..khhhhh', '...khhhh', '...kkbbb', '..kbbbbb', '.ksBbbbb', '.kskbbbb', '..kkpppp', '...kppk.', '...kkkk.'],
   hero_side: ['......kkkkk.....', '.....krrrrrk....', '....krrrrrrrk...', '....krrrrrrrk...', '....kRRRRRRRRRk.', '....khhssssk....', '....khhssksk....', '....khssssssk...', '.....kSsssk.....', '.....kkbbk......', '....kbbbbbk.....', '....kbBbbsk.....', '....kbBbbk......', '.....kpppk......', '.....kpkpk......', '.....kkkkk......'],

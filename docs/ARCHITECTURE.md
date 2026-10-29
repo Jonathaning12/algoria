@@ -36,9 +36,20 @@ Usa los compiladores locales: `python`, `g++` (MSYS2 UCRT64), `javac`/`java`. Ca
 - Tras el primer TLE no se ejecutan los tests restantes (se marcan TLE) para no hacer esperar al jugador.
 - La salida máxima por test es 64 KB.
 
-> **Aviso:** ejecutar código de usuarios directamente en la máquina **no es seguro para producción**.
-> Antes de publicar hay que aislar el juez (contenedor sin red, usuario sin privilegios, límites de memoria/CPU),
-> p. ej. con Judge0 o isolate. Para desarrollo local es suficiente.
+> **Aviso:** el modo local ejecuta el código de usuarios directamente en la máquina y **no es seguro para producción**.
+> En producción se define `JUDGE0_URL` y `judge()` delega en Judge0 (`packages/judge/src/judge0.ts`), que aísla
+> cada envío. Ver [DEPLOY.md](DEPLOY.md).
+
+## Despliegue
+
+`npm run build:vercel` genera `.vercel/output`: la web estática y `/api/run` + `/api/health` como funciones
+serverless (`apps/api/src/vercel.ts`, empaquetada con esbuild por `scripts/build-vercel.mjs`).
+
+## Coliseo
+
+Se abre al vencer el gimnasio de la última etapa. Torneo individual de 30 minutos con 5 problemas al azar
+de niveles superados (`apps/web/src/coliseo/logic.ts`); el récord se guarda en `localStorage`
+(`algoria.coliseo.v1`).
 
 ## Convenciones
 

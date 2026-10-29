@@ -2,9 +2,21 @@
 // se pueden añadir más, pero no cambiar sus firmas.
 import type { Level, Problem, Stage } from '@algoria/shared';
 import { bosqueIterador } from './stages/bosque-iterador';
+import { cuevaRecursiva } from './stages/cueva-recursiva';
+import { montanaGrafo } from './stages/montana-grafo';
 import { puebloSemilla } from './stages/pueblo-semilla';
+import { puertoEstructura } from './stages/puerto-estructura';
+import { torreDinamica } from './stages/torre-dinamica';
 
-export const stages: Stage[] = [puebloSemilla, bosqueIterador];
+/** Etapas jugables, en orden. Las que aún no tienen niveles no se exponen. */
+export const stages: Stage[] = [
+  puebloSemilla,
+  bosqueIterador,
+  cuevaRecursiva,
+  puertoEstructura,
+  montanaGrafo,
+  torreDinamica,
+].filter((s) => s.levels.length > 0);
 
 export const allLevels: Level[] = stages.flatMap((s) => s.levels);
 

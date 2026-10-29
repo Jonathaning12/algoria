@@ -18,8 +18,11 @@ export interface ServerOptions {
   /** Límite por IP para /api/run. Por defecto 30 peticiones por minuto. */
   rateLimit?: { max: number; windowMs: number };
   logger?: boolean;
+  /** Detrás de un proxy (Vercel) la IP real viene en X-Forwarded-For. */
+  trustProxy?: boolean;
 }
 
+// En producción la web y la API comparten dominio, así que CORS solo hace falta en desarrollo.
 const ALLOWED_ORIGINS = ['http://localhost:5180', 'http://127.0.0.1:5180'];
 
 function apiError(error: string): ApiError {
@@ -68,7 +71,7 @@ export function buildServer(opts: ServerOptions = {}): FastifyInstance {
   const detectCompilers = opts.detectCompilers ?? realDetectCompilers;
   const { max: rateMax, windowMs } = opts.rateLimit ?? { max: 30, windowMs: 60_000 };
 
-  const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 1024 * 1024 });
+  const app = Fastify({ logger: opts.logger ?? false, bodyLimit: 1024 * 1024, trustProxy: opts.trustProxy ?? false });
 
   app.register(cors, { origin: ALLOWED_ORIGINS });
 

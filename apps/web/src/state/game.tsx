@@ -19,7 +19,8 @@ export type Screen =
   | { name: 'lesson'; levelId: string }
   | { name: 'battle'; levelId: string }
   | { name: 'victory'; levelId: string; info: VictoryInfo }
-  | { name: 'profile' };
+  | { name: 'profile' }
+  | { name: 'coliseo' };
 
 export interface Progress {
   version: 1;

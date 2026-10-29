@@ -388,7 +388,7 @@ export const nivel20: Level = {
   outro: [
     { speaker: 'CEDRO', text: 'Ni una huella se te escapó, y sin recontar el sendero una sola vez. Eso es dominar el bosque.' },
     { speaker: 'CEDRO', text: 'Toma la Medalla Hoja. Te la ganaste recorriendo con cabeza, no solo con pies.' },
-    { speaker: 'CEDRO', text: 'Más allá del sendero está la Cueva Recursiva. Sus puertas se abrirán próximamente.' },
+    { speaker: 'CEDRO', text: 'Más allá del sendero, al sur, está la Cueva Recursiva. Eco, su guardián, ya te está esperando.' },
   ],
   rewardTip: {
     title: 'Ventana de conteos',

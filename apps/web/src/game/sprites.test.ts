@@ -20,4 +20,11 @@ describe('sprites', () => {
       expect(spritePaths(id).length, id).toBeGreaterThan(0);
     }
   });
+
+  it('los NPCs de las etapas 3–6 son todos distintos entre sí', () => {
+    const ids = Object.keys(SPRITES).filter((id) => /^(npc\d\d|gym_(cueva|puerto|montana|torre))$/.test(id));
+    expect(ids).toHaveLength(40);
+    const drawings = new Set(ids.map((id) => SPRITES[id as keyof typeof SPRITES].join('|')));
+    expect(drawings.size).toBe(ids.length);
+  });
 });

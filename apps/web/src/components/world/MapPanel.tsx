@@ -12,6 +12,7 @@ export function MapPanel({
   progress,
   levels,
   onProfile,
+  onColiseo,
 }: {
   stage: Stage;
   /** Todas las etapas con contenido (para indicar a dónde ir si la misión está en otra). */
@@ -19,6 +20,8 @@ export function MapPanel({
   progress: Progress;
   levels: Level[];
   onProfile: () => void;
+  /** Si se pasa, muestra el botón del Coliseo (ya desbloqueado). */
+  onColiseo?: () => void;
 }) {
   const info = LANGUAGE_INFO[progress.language ?? 'python'];
   const totalXp = stage.levels.reduce((sum, l) => sum + (l.problem?.xp ?? 0), 0);
@@ -111,6 +114,11 @@ export function MapPanel({
       <button type="button" className="btn btn--blue" onClick={onProfile}>
         PERFIL
       </button>
+      {onColiseo && (
+        <button type="button" className="btn btn--gold" data-sfx="confirm" onClick={onColiseo}>
+          COLISEO
+        </button>
+      )}
     </aside>
   );
 }

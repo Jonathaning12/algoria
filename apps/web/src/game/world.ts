@@ -237,13 +237,10 @@ export function examine(
         const where = stage.number === 1 ? 'del pueblo' : 'de la zona';
         return { speaker: 'PUERTA CERRADA', text: `${gymName(stage)}: vence a los ${masters} maestros ${where} para entrar.` };
       }
-      return {
-        speaker: 'CASA',
-        text: stage.number === 1 ? 'Una casa del pueblo. La puerta está cerrada.' : 'Una cabaña. La puerta está cerrada.',
-      };
+      return { speaker: 'CASA', text: `${HOUSE_TEXT[stage.id] ?? 'Una cabaña'}. La puerta está cerrada.` };
     }
     case '~':
-      return { text: 'El agua del estanque está tranquila. Ves tu reflejo.' };
+      return { text: WATER_TEXT[stage.id] ?? 'El agua del estanque está tranquila. Ves tu reflejo.' };
     case 'T':
       return { text: 'Un árbol frondoso. No se puede pasar.' };
     case 'o':
@@ -261,9 +258,42 @@ export function examine(
     case '#':
       return { text: 'Un puente de tablones. Cruje un poco, pero aguanta.' };
     default:
-      return null;
+      return TILE_TEXT[tile] ? { text: TILE_TEXT[tile] } : null;
   }
 }
+
+/** Casas ('H') según la etapa. */
+const HOUSE_TEXT: Record<string, string> = {
+  'pueblo-semilla': 'Una casa del pueblo',
+  'cueva-recursiva': 'Una caseta de mineros',
+  'puerto-estructura': 'Un almacén del puerto',
+  'montana-grafo': 'Un refugio de montaña',
+  'torre-dinamica': 'Una sala de la torre',
+};
+
+/** Agua ('~') según la etapa. */
+const WATER_TEXT: Record<string, string> = {
+  'cueva-recursiva': 'Un lago subterráneo. El eco repite tus pasos… y los repite… y los repite.',
+  'puerto-estructura': 'El mar está en calma. Huele a sal y a redes mojadas.',
+  'montana-grafo': 'Agua de deshielo, helada y transparente.',
+  'torre-dinamica': 'Una fuente encantada. Cada gota recuerda dónde cayó la anterior.',
+};
+
+/** Tiles de las etapas 3–6 que se pueden examinar. */
+const TILE_TEXT: Record<string, string> = {
+  W: 'Roca de la cueva, fría y húmeda. No se puede pasar.',
+  K: 'Una estalagmita. Crece gota a gota, como una recursión muy lenta.',
+  C: 'Un cristal que brilla en la oscuridad. Dentro se ve un cristal más pequeño, y dentro otro…',
+  X: 'Una caja de carga bien apilada. La última que entra es la primera que sale.',
+  U: 'Un barquito amarrado al muelle. Hoy no sale a navegar.',
+  '|': 'Tablones del muelle. Se oye el mar por debajo.',
+  M: 'Una pared de roca de la montaña. Habrá que buscar otro camino.',
+  I: 'Una roca cubierta de hielo. Resbala solo con mirarla.',
+  '+': 'Nieve recién caída. Tus huellas marcan el camino recorrido.',
+  Z: 'Un muro de ladrillo de la torre. Cada piso se apoya en el de abajo.',
+  Q: 'Una estantería llena de libros. Alguien apuntó aquí cada resultado para no calcularlo dos veces.',
+  '%': 'Una alfombra roja muy mullida.',
+};
 
 /** Posición inicial: la guardada si es válida; si no, el spawn. */
 export function startPosition(stage: Stage, npcs: WorldNpc[], saved: PlayerPos | null | undefined): PlayerPos {
@@ -426,17 +456,29 @@ export function move(
   return r;
 }
 
-/** Fondo de hierba de cada etapa: color base y puntos. */
+/** Fondo de cada etapa: color base, puntos y (opcional) color del anillo de NPC al pasar el ratón. */
 export interface Ground {
   base: string;
   dot: string;
+  /** Sobre fondos claros el anillo claro por defecto no se vería. */
+  ring?: string;
 }
 
 export const DEFAULT_GROUND: Ground = { base: '#6cc04a', dot: '#4f9e38' };
 
+const INK = '#1c1a2b';
+
 export const STAGE_GROUND: Record<string, Ground> = {
   'pueblo-semilla': DEFAULT_GROUND,
   'bosque-iterador': { base: '#4f9e38', dot: '#2f7a3a' },
+  // Gris oscuro de cueva, algo más claro que la pared (W) para distinguirlos.
+  'cueva-recursiva': { base: '#57556a', dot: '#45435a' },
+  // Arena clara, más pálida que el tile de arena (:).
+  'puerto-estructura': { base: '#f3e6c0', dot: '#e0cb92', ring: INK },
+  // Nieve muy clara azulada, algo más oscura que el tile de nieve (+) para que este brille.
+  'montana-grafo': { base: '#dbe7f3', dot: '#c0d3e7', ring: INK },
+  // Piedra morada oscura.
+  'torre-dinamica': { base: '#3d2f55', dot: '#2e2242' },
 };
 
 export function groundOf(stage: Pick<Stage, 'id'>): Ground {

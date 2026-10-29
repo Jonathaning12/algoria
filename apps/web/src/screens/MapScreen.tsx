@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { TILE_LEGEND, type SpriteId } from '@algoria/shared';
 import { allLevels, stages } from '@algoria/content';
 import { useGame } from '../state/game';
 import { Sprite } from '../components/Sprite';
 import { MapPanel } from '../components/world/MapPanel';
 import { audio } from '../audio/engine';
+import { isColiseoUnlocked } from '../coliseo/logic';
 import {
   INTRO_TEXT,
   KEY_DIRS,
@@ -16,6 +17,7 @@ import {
   mapSize,
   move as moveInWorld,
   npcStatus,
+  stageTitle,
   startPosition,
   talkMessage,
   worldNpcs,
@@ -159,6 +161,10 @@ export function MapScreen() {
     } else if (r.reason === 'exit' && stage.map.exit) {
       audio.sfx('locked');
       setMsg({ speaker: 'CAMINO BLOQUEADO', text: stage.map.exit.lockedText });
+    } else if (r.reason === 'soon' && isColiseoUnlocked(completed, stages)) {
+      // La salida de la última etapa lleva al Coliseo.
+      audio.sfx('confirm');
+      go({ name: 'coliseo' });
     } else if (r.reason === 'soon') {
       audio.sfx('locked');
       setMsg({ speaker: 'CAMINO', text: r.text });
@@ -214,7 +220,7 @@ export function MapScreen() {
                 tabIndex={0}
                 role="application"
                 aria-roledescription="mapa"
-                aria-label={`Mapa del ${stage.name.toLowerCase()}. Usa W A S D o las flechas para moverte, E para examinar y Escape para cerrar mensajes.`}
+                aria-label={`Mapa de${stageTitle(stage.name, true)}. Usa W A S D o las flechas para moverte, E para examinar y Escape para cerrar mensajes.`}
                 onKeyDown={onKeyDown}
                 onClick={focusWorld}
                 style={{
@@ -222,7 +228,8 @@ export function MapScreen() {
                   height: rows * T,
                   backgroundColor: ground.base,
                   backgroundImage: `radial-gradient(${ground.dot} 2px, transparent 2.5px)`,
-                }}
+                  ...(ground.ring ? { '--world-ring': ground.ring } : {}),
+                } as CSSProperties}
               >
                 {tiles.map((t) => (
                   <div key={`${t.x},${t.y}`} className="world__tile" style={{ left: t.x * T, top: t.y * T }}>
@@ -359,7 +366,14 @@ export function MapScreen() {
           </div>
         </section>
 
-        <MapPanel stage={stage} stages={stages} progress={progress} levels={allLevels} onProfile={() => go({ name: 'profile' })} />
+        <MapPanel
+          stage={stage}
+          stages={stages}
+          progress={progress}
+          levels={allLevels}
+          onProfile={() => go({ name: 'profile' })}
+          onColiseo={isColiseoUnlocked(completed, stages) ? () => go({ name: 'coliseo' }) : undefined}
+        />
       </div>
     </main>
   );

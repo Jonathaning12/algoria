@@ -10,12 +10,14 @@
   "scripts": {
     "dev": "concurrently -n api,web -c yellow,cyan \"npm run dev -w @algoria/api\" \"npm run dev -w @algoria/web\"",
     "build": "npm run build -w @algoria/web",
+    "build:vercel": "npm run build -w @algoria/web && node scripts/build-vercel.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "verify:content": "npm run verify -w @algoria/content"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
+    "esbuild": "^0.28.2",
     "typescript": "^5.7.3"
   }
 }

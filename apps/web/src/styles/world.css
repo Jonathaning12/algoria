@@ -90,7 +90,7 @@
 }
 
 .npc { position: absolute; width: 56px; height: 56px; padding: 0; border: 0; background: transparent; cursor: pointer; }
-.npc__ring { position: absolute; inset: -4px; border: 3px dashed var(--paper); opacity: 0; pointer-events: none; }
+.npc__ring { position: absolute; inset: -4px; border: 3px dashed var(--world-ring, var(--paper)); opacity: 0; pointer-events: none; }
 .npc:hover .npc__ring, .npc:focus-visible .npc__ring { opacity: 1; }
 .npc:focus-visible { outline: none; }
 .npc--locked > svg { opacity: .55; }

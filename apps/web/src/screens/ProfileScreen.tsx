@@ -3,6 +3,7 @@ import type { Stage } from '@algoria/shared';
 import { allLevels, getLevel, stages } from '@algoria/content';
 import { playerLevel, useGame, useLanguage, type Progress } from '../state/game';
 import { ROUTE, type RouteInfo } from '../game/world';
+import { isColiseoUnlocked, loadRecord } from '../coliseo/logic';
 import { LANGUAGE_INFO } from '../lib/languages';
 import { Sprite } from '../components/Sprite';
 import { Bar } from '../components/ui';
@@ -52,14 +53,22 @@ function buildRoute(progress: Progress, currentId: string): RouteEntry[] {
     };
   };
   const real = stages.map(fromContent);
-  const soon = ROUTE.filter((r) => !stages.some((s) => s.number === r.n)).map((r) => ({
-    ...r,
-    pct: 0,
-    status: 'PRÓXIMAMENTE',
-    real: false,
-    current: false,
-    badgeEarned: false,
-  }));
+  const coliseoOpen = isColiseoUnlocked(progress.completed, stages);
+  const coliseoRecord = loadRecord();
+  const soon = ROUTE.filter((r) => !stages.some((s) => s.number === r.n)).map((r) => {
+    // El Coliseo existe aunque no sea una etapa con niveles: se abre tras el último gimnasio.
+    if (/COLISEO/i.test(r.name)) {
+      return {
+        ...r,
+        pct: coliseoRecord.plays > 0 ? 100 : 0,
+        status: coliseoOpen ? `ABIERTO · RÉCORD ${coliseoRecord.best}` : 'BLOQUEADO',
+        real: true,
+        current: false,
+        badgeEarned: coliseoRecord.best > 0,
+      };
+    }
+    return { ...r, pct: 0, status: 'PRÓXIMAMENTE', real: false, current: false, badgeEarned: false };
+  });
   return [...real, ...soon].sort((a, b) => a.n - b.n);
 }
 

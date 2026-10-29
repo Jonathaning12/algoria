@@ -44,6 +44,14 @@ Etapas jugables:
 
 1. **Pueblo Semilla** (Nv 1–10): fundamentos del lenguaje.
 2. **Bosque Iterador** (Nv 11–20): arreglos, strings, matrices, sumas acumuladas, ventana deslizante y frecuencias; primer contacto con la eficiencia (Big-O).
+3. **Cueva Recursiva** (Nv 21–30): recursión, backtracking, ordenamiento, búsqueda binaria y dos punteros.
+4. **Puerto Estructura** (Nv 31–40): pilas, colas, mapas, sets, colas de prioridad y deque.
+5. **Montaña Grafo** (Nv 41–50): BFS, DFS, orden topológico, Dijkstra, Union-Find y Kruskal.
+6. **Torre Dinámica** (Nv 51–60): programación dinámica.
+7. **Coliseo**: torneo contrarreloj de 30 minutos con 5 problemas al azar; se abre al vencer el último gimnasio.
 
-> El juez ejecuta el código directamente en la máquina: sirve para desarrollo local,
-> pero **no debe exponerse a internet** sin aislarlo antes (ver docs/ARCHITECTURE.md).
+## Publicar
+
+Ver [docs/DEPLOY.md](docs/DEPLOY.md): la web y la API en Vercel, y el código de los jugadores
+ejecutándose aislado en Judge0. En local, sin `JUDGE0_URL`, el juez usa los compiladores de tu PC
+(no expongas ese modo a internet).
