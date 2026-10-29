@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Algoria · Elige compañero</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Pixelify+Sans:wght@400;600&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1e1b33}
+a{color:#f6c945}a:hover{color:#fbf7ea}
+.px{font-family:'Press Start 2P',monospace}
+.box{background:#fbf7ea;border:4px solid #1c1a2b;box-shadow:inset 0 0 0 4px #fbf7ea,inset 0 0 0 7px #1c1a2b;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+.bob{animation:bob .8s steps(2,end) infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+</style>
+</helmet>
+<div style="font-family: 'Pixelify Sans', sans-serif; color: #fbf7ea; background: #1e1b33; min-height: 820px; position: relative; overflow: hidden">
+  <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none">
+    <span style="position: absolute; left: 6%; top: 8%; width: 6px; height: 6px; background: #fbf7ea"></span>
+    <span style="position: absolute; left: 18%; top: 22%; width: 4px; height: 4px; background: #7fd3e8"></span>
+    <span style="position: absolute; left: 34%; top: 6%; width: 4px; height: 4px; background: #fbf7ea"></span>
+    <span style="position: absolute; left: 62%; top: 12%; width: 6px; height: 6px; background: #f6c945"></span>
+    <span style="position: absolute; left: 78%; top: 26%; width: 4px; height: 4px; background: #fbf7ea"></span>
+    <span style="position: absolute; left: 90%; top: 9%; width: 6px; height: 6px; background: #7fd3e8"></span>
+    <span style="position: absolute; left: 48%; top: 30%; width: 4px; height: 4px; background: #fbf7ea"></span>
+  </div>
+
+  <div style="position: relative; max-width: 1120px; margin: 0 auto; padding: 48px 24px 40px; display: flex; flex-direction: column; align-items: center; gap: 32px">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+      <h1 class="px" style="margin: 0; font-size: 48px; color: #f6c945; text-shadow: 5px 5px 0 #9c2b2b">ALGORIA</h1>
+      <p class="px" style="margin: 0; font-size: 12px; color: #7fd3e8; letter-spacing: 3px">CODE QUEST</p>
+    </div>
+
+    <div style="display: flex; gap: 20px; align-items: flex-end; width: 100%; max-width: 900px; flex-wrap: wrap">
+      <dc-import name="Sprite" sprite="prof" size="96" hint-size="96px,96px"></dc-import>
+      <div style="position: relative; padding-top: 18px; flex: 1 1 400px; color: #1c1a2b">
+        <span class="px" style="position: absolute; top: 0; left: 20px; z-index: 1; background: #f6c945; border: 4px solid #1c1a2b; padding: 8px 12px; font-size: 10px">PROF. BIT</span>
+        <div class="box" style="padding: 26px 28px 22px; font-size: 24px; line-height: 1.35; position: relative">
+          ¡Bienvenido a Algoria! Antes de partir, elige a tu compañero. Cada uno habla un lenguaje distinto. Podrás conocer a los demás más adelante.
+          <span class="blink" style="position: absolute; right: 22px; bottom: 12px; font-size: 18px; color: #e0483e">▼</span>
+        </div>
+      </div>
+    </div>
+
+    <div role="radiogroup" aria-label="Elige tu lenguaje" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; width: 100%">
+      <sc-for list="{{cards}}" as="c" hint-placeholder-count="3">
+        <button type="button" role="radio" aria-checked="{{c.checked}}" onClick="{{c.pick}}" style="font: inherit; color: #1c1a2b; text-align: left; cursor: pointer; padding: 0; border: 0; background: transparent; transform: translateY({{c.lift}}px)">
+          <div style="background: {{c.bg}}; border: 4px solid #1c1a2b; box-shadow: 0 6px 0 #1c1a2b, 0 0 0 {{c.ring}}px #f6c945; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; justify-content: space-between; align-items: center">
+              <span class="px" style="font-size: 11px; background: {{c.tagBg}}; color: {{c.tagFg}}; border: 3px solid #1c1a2b; padding: 6px 8px">{{c.lang}}</span>
+              <sc-if value="{{c.selected}}" hint-placeholder-val="{{false}}"><span class="px blink" style="font-size: 14px; color: #e0483e">◀</span></sc-if>
+            </div>
+            <div style="display: flex; justify-content: center; padding: 8px 0; background: #6cc04a; border: 3px solid #1c1a2b">
+              <div class="{{c.anim}}"><dc-import name="Sprite" sprite="{{c.sprite}}" size="112" hint-size="112px,112px"></dc-import></div>
+            </div>
+            <strong class="px" style="font-size: 16px">{{c.name}}</strong>
+            <span style="font-size: 20px; line-height: 1.3">{{c.blurb}}</span>
+            <span style="font-size: 18px; color: #4a4560">{{c.stat}}</span>
+          </div>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center">
+      <a href="Map.dc.html" class="px" style="font-size: 14px; color: #1c1a2b; background: #f6c945; border: 4px solid #1c1a2b; box-shadow: 0 5px 0 #9c2b2b; padding: 16px 22px; text-decoration: none">¡ELIJO A {{chosen}}!</a>
+      <span class="px blink" style="font-size: 10px; color: #c3c7d4">PULSA A PARA CONFIRMAR</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":820}}'>
+var STARTERS = [
+  { name: 'PYXI', lang: 'PYTHON', sprite: 'pyxi', tagBg: '#3f74d8', tagFg: '#fbf7ea', blurb: 'Lee casi como inglés. Ideal si es tu primera vez programando.', stat: 'Facilidad ★★★ · Velocidad ★☆☆' },
+  { name: 'CEEPLUS', lang: 'C++', sprite: 'ceeplus', tagBg: '#3a8fb5', tagFg: '#fbf7ea', blurb: 'Rápido como un rayo. El favorito de las competencias.', stat: 'Facilidad ★☆☆ · Velocidad ★★★' },
+  { name: 'JAVO', lang: 'JAVA', sprite: 'javo', tagBg: '#f08a3c', tagFg: '#1c1a2b', blurb: 'Ordenado y robusto. Todo vive dentro de clases.', stat: 'Facilidad ★★☆ · Velocidad ★★☆' }
+];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { picked: 0 }; }
+  renderVals() {
+    var picked = this.state.picked;
+    var self = this;
+    return {
+      chosen: STARTERS[picked].name,
+      cards: STARTERS.map(function (s, i) {
+        var sel = i === picked;
+        return Object.assign({}, s, {
+          selected: sel,
+          checked: sel ? 'true' : 'false',
+          bg: sel ? '#fbf7ea' : '#d9d3bd',
+          lift: sel ? -8 : 0,
+          ring: sel ? 4 : 0,
+          anim: sel ? 'bob' : '',
+          pick: function () { self.setState({ picked: i }); }
+        });
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

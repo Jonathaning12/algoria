@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vite/
+*.log
+.env
+.env.*
+!.env.example
+# Carpeta temporal donde el juez compila y ejecuta código
+.judge-tmp/
+coverage/
+.DS_Store
+Thumbs.db

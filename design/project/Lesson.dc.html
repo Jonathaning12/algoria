@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Algoria · Lección if / else</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Pixelify+Sans:wght@400;600&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f3ead0}
+a{color:#1c1a2b}
+.px{font-family:'Press Start 2P',monospace}
+.box{background:#fbf7ea;border:4px solid #1c1a2b;box-shadow:inset 0 0 0 4px #fbf7ea,inset 0 0 0 7px #1c1a2b;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+</style>
+</helmet>
+<div style="font-family: 'Pixelify Sans', sans-serif; color: #1c1a2b; background: #f3ead0; min-height: 960px">
+  <header style="background: #1e1b33; color: #fbf7ea; border-bottom: 4px solid #1c1a2b">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+      <div style="display: flex; gap: 14px; align-items: center">
+        <a href="Dialog.dc.html" class="px" style="font-size: 10px; color: #fbf7ea; text-decoration: none; border: 3px solid #fbf7ea; padding: 8px 10px">◂ B</a>
+        <span class="px" style="font-size: 12px">LECCIÓN · Nv 5 · CONDICIONALES</span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center" aria-label="Progreso de la lección: paso 2 de 3">
+        <span class="px" style="font-size: 9px; color: #c3c7d4; margin-right: 6px">PASO 2/3</span>
+        <span style="width: 28px; height: 12px; background: #6cc04a; border: 3px solid #fbf7ea"></span>
+        <span style="width: 28px; height: 12px; background: #f6c945; border: 3px solid #fbf7ea"></span>
+        <span style="width: 28px; height: 12px; background: #4a4560; border: 3px solid #fbf7ea"></span>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 48px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start">
+
+    <aside style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; align-items: flex-end; gap: 12px">
+        <dc-import name="Sprite" sprite="lia" size="112" hint-size="112px,112px"></dc-import>
+        <div class="box" style="padding: 16px 18px; font-size: 21px; line-height: 1.3; flex: 1">Piensa en if como una puerta: solo la cruzas si la condición es verdadera.</div>
+      </div>
+      <div class="box" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+        <span class="px" style="font-size: 10px">LO QUE APRENDERÁS</span>
+        <ul style="margin: 0; padding-left: 20px; font-size: 19px; line-height: 1.45">
+          <li>Comparar valores: <code style="font-family: 'JetBrains Mono', monospace">&gt;=  ==  !=</code></li>
+          <li>Elegir un camino con if / else</li>
+          <li>Saber si un número es par con %</li>
+        </ul>
+      </div>
+      <div class="box" style="padding: 16px 18px; display: flex; gap: 14px; align-items: center; background: #fbf7ea">
+        <div style="background: {{compBg}}; border: 3px solid #1c1a2b; display: flex; padding: 4px; flex: 0 0 auto"><dc-import name="Sprite" sprite="{{compSprite}}" size="48" hint-size="48px,48px"></dc-import></div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <strong class="px" style="font-size: 9px; color: #9c2b2b">TIP DE {{compName}}</strong>
+          <span style="font-size: 19px; line-height: 1.3">{{tip}}</span>
+        </div>
+      </div>
+    </aside>
+
+    <section style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+      <div class="box" style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center">
+          <h1 class="px" style="margin: 0; font-size: 16px">IF / ELSE</h1>
+          <div role="tablist" aria-label="Lenguaje" style="display: flex; gap: 8px; flex-wrap: wrap">
+            <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+              <button type="button" role="tab" aria-selected="{{tb.aria}}" onClick="{{tb.pick}}" class="px" style="font-size: 10px; min-height: 40px; padding: 8px 12px; cursor: pointer; border: 3px solid #1c1a2b; background: {{tb.bg}}; color: {{tb.fg}}">{{tb.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 21px; line-height: 1.35">Leemos una edad. Si es 18 o más, imprimimos «Adulto». Si no, «Menor».</p>
+        <pre style="margin: 0; background: #1c1a2b; color: #fbf7ea; padding: 18px 20px; font-family: 'JetBrains Mono', monospace; font-size: 16px; line-height: 1.55; overflow-x: auto; border-left: 0"><code>{{code}}</code></pre>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+          <div style="border: 3px solid #1c1a2b; padding: 12px; background: #f3ead0; display: flex; flex-direction: column; gap: 6px"><span class="px" style="font-size: 9px">ENTRADA 20</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 16px">→ Adulto</span></div>
+          <div style="border: 3px solid #1c1a2b; padding: 12px; background: #f3ead0; display: flex; flex-direction: column; gap: 6px"><span class="px" style="font-size: 9px">ENTRADA 15</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 16px">→ Menor</span></div>
+          <div style="border: 3px solid #1c1a2b; padding: 12px; background: #f3ead0; display: flex; flex-direction: column; gap: 6px"><span class="px" style="font-size: 9px">ENTRADA 18</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 16px">→ Adulto</span></div>
+        </div>
+      </div>
+
+      <div class="box" style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h2 class="px" style="margin: 0; font-size: 13px">MINI RETO · ¿QUÉ IMPRIME?</h2><span class="px" style="font-size: 9px; background: #f6c945; border: 2px solid #1c1a2b; padding: 4px 6px">+10 XP</span></div>
+        <pre style="margin: 0; background: #1c1a2b; color: #fbf7ea; padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 16px; line-height: 1.55; overflow-x: auto"><code>{{quiz}}</code></pre>
+        <div role="group" aria-label="Respuestas" style="display: flex; flex-wrap: wrap; gap: 12px">
+          <sc-for list="{{answers}}" as="a" hint-placeholder-count="3">
+            <button type="button" onClick="{{a.pick}}" class="px" style="font-size: 12px; min-height: 48px; padding: 12px 18px; cursor: pointer; border: 4px solid #1c1a2b; box-shadow: 0 4px 0 #1c1a2b; background: {{a.bg}}; color: #1c1a2b">{{a.label}}</button>
+          </sc-for>
+        </div>
+        <sc-if value="{{answered}}" hint-placeholder-val="{{false}}">
+          <div role="status" style="display: flex; gap: 12px; align-items: center; border: 3px solid #1c1a2b; padding: 12px 16px; background: {{fbBg}}">
+            <strong class="px" style="font-size: 10px">{{fbTitle}}</strong>
+            <span style="font-size: 19px; line-height: 1.3">{{fbText}}</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 16px; flex-wrap: wrap">
+        <a href="Battle.dc.html" class="px" style="font-size: 13px; color: #1c1a2b; background: #f6c945; border: 4px solid #1c1a2b; box-shadow: 0 5px 0 #1c1a2b; padding: 16px 22px; text-decoration: none">¡AL DUELO CON LÍA! ▸</a>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":960}}'>
+var LANGS = {
+  py: { label: 'PYTHON', bg: '#3f74d8', fg: '#fbf7ea', sprite: 'pyxi', comp: 'PYXI', compBg: '#7fd3e8',
+    tip: 'Los 4 espacios de sangría marcan qué está dentro del if. ¡No los olvides!',
+    code: 'edad = int(input())\n\nif edad >= 18:\n    print("Adulto")\nelse:\n    print("Menor")',
+    quiz: 'x = 7\nif x % 2 == 0:\n    print("par")\nelse:\n    print("impar")' },
+  cpp: { label: 'C++', bg: '#3a8fb5', fg: '#fbf7ea', sprite: 'ceeplus', comp: 'CEEPLUS', compBg: '#c3c7d4',
+    tip: 'Las llaves { } marcan el bloque. La condición siempre va entre paréntesis.',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int edad;\n    cin >> edad;\n    if (edad >= 18) {\n        cout << "Adulto" << endl;\n    } else {\n        cout << "Menor" << endl;\n    }\n}',
+    quiz: 'int x = 7;\nif (x % 2 == 0) {\n    cout << "par";\n} else {\n    cout << "impar";\n}' },
+  java: { label: 'JAVA', bg: '#f08a3c', fg: '#1c1a2b', sprite: 'javo', comp: 'JAVO', compBg: '#f3ead0',
+    tip: 'Usa Scanner para leer datos. Y cada instrucción termina en punto y coma.',
+    code: 'import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int edad = sc.nextInt();\n        if (edad >= 18) {\n            System.out.println("Adulto");\n        } else {\n            System.out.println("Menor");\n        }\n    }\n}',
+    quiz: 'int x = 7;\nif (x % 2 == 0) {\n    System.out.println("par");\n} else {\n    System.out.println("impar");\n}' }
+};
+var ORDER = ['py', 'cpp', 'java'];
+var ANSWERS = ['par', 'impar', 'error'];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { lang: 'py', ans: null }; }
+  renderVals() {
+    var self = this, L = LANGS[this.state.lang], ans = this.state.ans, ok = ans === 'impar';
+    return {
+      code: L.code, quiz: L.quiz, tip: L.tip, compSprite: L.sprite, compName: L.comp, compBg: L.compBg,
+      tabs: ORDER.map(function (k) {
+        var on = k === self.state.lang, T = LANGS[k];
+        return { label: T.label, aria: on ? 'true' : 'false', bg: on ? T.bg : '#fbf7ea', fg: on ? T.fg : '#1c1a2b', pick: function () { self.setState({ lang: k }); } };
+      }),
+      answers: ANSWERS.map(function (a) {
+        var bg = '#fbf7ea';
+        if (ans === a) bg = a === 'impar' ? '#6cc04a' : '#f2a49e';
+        return { label: a.toUpperCase(), bg: bg, pick: function () { self.setState({ ans: a }); } };
+      }),
+      answered: ans !== null,
+      fbBg: ok ? '#d6efc4' : '#f9d7d3',
+      fbTitle: ok ? '¡CORRECTO!' : 'CASI…',
+      fbText: ok ? '7 % 2 da 1, no 0. La condición es falsa, así que se ejecuta el else.' : 'Pista: % devuelve el resto de dividir. ¿Cuánto sobra al dividir 7 entre 2?'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Algoria · Duelo de código</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Pixelify+Sans:wght@400;600&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1e1b33}
+a{color:#1c1a2b}
+.px{font-family:'Press Start 2P',monospace}
+.box{background:#fbf7ea;border:4px solid #1c1a2b;box-shadow:inset 0 0 0 4px #fbf7ea,inset 0 0 0 7px #1c1a2b;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+.act{font-family:'Press Start 2P',monospace;font-size:12px;min-height:52px;padding:12px 14px;border:4px solid #1c1a2b;box-shadow:0 4px 0 #1c1a2b;cursor:pointer;color:#1c1a2b;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;box-sizing:border-box}
+.act:active{transform:translateY(3px);box-shadow:0 1px 0 #1c1a2b}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+.bob{animation:bob 1s steps(2,end) infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+textarea:focus{outline:3px solid #f6c945;outline-offset:-3px}
+</style>
+</helmet>
+<div style="font-family: 'Pixelify Sans', sans-serif; color: #1c1a2b; background: #1e1b33; min-height: 960px">
+  <div style="max-width: 1220px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+
+    <section aria-label="Duelo" style="position: relative; background: #7fd3e8; border: 4px solid #1c1a2b; box-shadow: 0 0 0 4px #fbf7ea, 0 0 0 8px #1c1a2b; margin: 8px; min-height: 210px; overflow: hidden; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; padding: 16px 24px 0">
+      <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: #6cc04a; border-top: 4px solid #2f7a3a"></div>
+
+      <div style="position: relative; display: flex; align-items: flex-end; gap: 12px">
+        <div style="display: flex; align-items: flex-end"><dc-import name="Sprite" sprite="hero_up" size="128" hint-size="128px,128px"></dc-import><div style="margin-left: -20px"><dc-import name="Sprite" sprite="{{compSprite}}" size="72" hint-size="72px,72px"></dc-import></div></div>
+        <div class="box" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 76px; min-width: 220px">
+          <div style="display: flex; justify-content: space-between"><strong class="px" style="font-size: 11px">JUGADOR 1</strong><span class="px" style="font-size: 10px">Nv 5</span></div>
+          <div style="display: flex; gap: 6px; align-items: center"><span class="px" style="font-size: 8px">PISTAS</span><sc-for list="{{pips}}" as="p" hint-placeholder-count="3"><span style="width: 16px; height: 16px; border: 3px solid #1c1a2b; background: {{p.bg}}"></span></sc-for></div>
+        </div>
+      </div>
+
+      <div style="position: relative; display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap-reverse; justify-content: flex-end">
+        <div class="box" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 76px; min-width: 260px">
+          <div style="display: flex; justify-content: space-between"><strong class="px" style="font-size: 11px">LÍA</strong><span class="px" style="font-size: 10px">Nv 5</span></div>
+          <div style="display: flex; gap: 8px; align-items: center">
+            <span class="px" style="font-size: 8px; background: #1c1a2b; color: #f6c945; padding: 4px 5px">DEFENSA</span>
+            <div style="flex: 1; height: 12px; border: 3px solid #1c1a2b; background: #4a4560"><div style="height: 100%; width: {{hpPct}}%; background: {{hpColor}}; transition: width .6s steps(6)"></div></div>
+          </div>
+          <span class="px" style="font-size: 9px; align-self: flex-end">{{hpText}}</span>
+        </div>
+        <div class="{{liaAnim}}" style="opacity: {{liaOpacity}}"><dc-import name="Sprite" sprite="lia" size="128" hint-size="128px,128px"></dc-import></div>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+      <article class="box" style="flex: 1 1 360px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap"><h1 class="px" style="margin: 0; font-size: 14px">¿PAR O IMPAR?</h1><span class="px" style="font-size: 9px; background: #6cc04a; border: 2px solid #1c1a2b; padding: 4px 6px">FÁCIL · 100 XP</span></div>
+        <p style="margin: 0; font-size: 21px; line-height: 1.35">Lía piensa en un número entero N. Si N es par, imprime <code style="font-family: 'JetBrains Mono', monospace; background: #1c1a2b; color: #f6c945; padding: 0 5px">PAR</code>. Si no, imprime <code style="font-family: 'JetBrains Mono', monospace; background: #1c1a2b; color: #f6c945; padding: 0 5px">IMPAR</code>.</p>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+          <div style="border: 3px solid #1c1a2b; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px"><span class="px" style="font-size: 9px">ENTRADA</span><span style="font-size: 18px">Una línea con N</span></div>
+          <div style="border: 3px solid #1c1a2b; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px"><span class="px" style="font-size: 9px">SALIDA</span><span style="font-size: 18px">PAR o IMPAR</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span class="px" style="font-size: 9px">EJEMPLOS</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 15px">
+            <span style="background: #1c1a2b; color: #fbf7ea; padding: 8px 10px">4 → PAR</span>
+            <span style="background: #1c1a2b; color: #fbf7ea; padding: 8px 10px">7 → IMPAR</span>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 17px; color: #4a4560">Límites: 0 ≤ N ≤ 10⁹ · Tiempo: 1 s · Memoria: 256 MB</p>
+        <sc-if value="{{hint}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; gap: 12px; align-items: center; border: 3px solid #1c1a2b; background: #e3f4fa; padding: 10px 12px">
+            <dc-import name="Sprite" sprite="{{compSprite}}" size="40" hint-size="40px,40px"></dc-import>
+            <span style="font-size: 18px; line-height: 1.3"><strong>Pista:</strong> el operador % da el resto de una división. Si N % 2 es 0, N es par.</span>
+          </div>
+        </sc-if>
+      </article>
+
+      <section class="box" aria-label="Editor" style="flex: 1.3 1 460px; min-width: 0; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap">
+          <div role="tablist" aria-label="Lenguaje" style="display: flex; gap: 6px; flex-wrap: wrap">
+            <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+              <button type="button" role="tab" aria-selected="{{tb.aria}}" onClick="{{tb.pick}}" class="px" style="font-size: 9px; min-height: 36px; padding: 6px 10px; cursor: pointer; border: 3px solid #1c1a2b; background: {{tb.bg}}; color: {{tb.fg}}">{{tb.label}}</button>
+            </sc-for>
+          </div>
+          <span class="px" style="font-size: 8px; color: #4a4560">{{fileName}}</span>
+        </div>
+        <div style="display: flex; background: #1c1a2b; min-height: 240px; flex: 1">
+          <pre aria-hidden="true" style="margin: 0; padding: 14px 10px; color: #7d8399; font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.6; text-align: right; user-select: none; border-right: 2px solid #4a4560">{{lineNums}}</pre>
+          <label for="code" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Tu código</label>
+          <textarea id="code" spellcheck="false" value="{{code}}" onChange="{{onCode}}" style="flex: 1; min-width: 0; resize: none; background: #1c1a2b; color: #fbf7ea; border: 0; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.6; white-space: pre; overflow: auto"></textarea>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span class="px" style="font-size: 9px">CASOS DE PRUEBA</span>
+          <ul style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+            <sc-for list="{{tests}}" as="t" hint-placeholder-count="5">
+              <li style="border: 3px solid #1c1a2b; background: {{t.bg}}; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px">
+                <span class="px" style="font-size: 12px">{{t.icon}}</span>
+                <span class="px" style="font-size: 7px">{{t.label}}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+      <div class="box" role="status" style="flex: 999 1 420px; padding: 20px 26px; font-size: 24px; line-height: 1.35; display: flex; flex-direction: column; justify-content: center; gap: 12px; min-height: 120px">
+        <span>{{log}}</span>
+        <sc-if value="{{won}}" hint-placeholder-val="{{false}}">
+          <a href="Victory.dc.html" class="act" style="align-self: flex-end; background: #f6c945">CONTINUAR <span class="blink" style="color: #e0483e">▼</span></a>
+        </sc-if>
+      </div>
+      <nav class="box" aria-label="Acciones" style="flex: 1 1 360px; padding: 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <button type="button" class="act" style="background: #fbf7ea" onClick="{{run}}">EJECUTAR</button>
+        <button type="button" class="act" style="background: #6cc04a" onClick="{{submit}}">ENVIAR</button>
+        <button type="button" class="act" style="background: #7fd3e8" onClick="{{askHint}}">PISTA</button>
+        <a href="Map.dc.html" class="act" style="background: #c3c7d4">HUIR</a>
+      </nav>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":960}}'>
+var LANGS = {
+  py: { label: 'PYTHON', bg: '#3f74d8', fg: '#fbf7ea', sprite: 'pyxi', file: 'solucion.py',
+    code: 'n = int(input())\n\nif n % 2 == 0:\n    print("PAR")\nelse:\n    print("IMPAR")\n' },
+  cpp: { label: 'C++', bg: '#3a8fb5', fg: '#fbf7ea', sprite: 'ceeplus', file: 'solucion.cpp',
+    code: '#include <iostream>\nusing namespace std;\n\nint main() {\n    long long n;\n    cin >> n;\n    if (n % 2 == 0) cout << "PAR";\n    else cout << "IMPAR";\n}\n' },
+  java: { label: 'JAVA', bg: '#f08a3c', fg: '#1c1a2b', sprite: 'javo', file: 'Main.java',
+    code: 'import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        long n = new Scanner(System.in).nextLong();\n        System.out.println(n % 2 == 0 ? "PAR" : "IMPAR");\n    }\n}\n' }
+};
+var ORDER = ['py', 'cpp', 'java'];
+var LOG = [
+  '¡LÍA te reta a un duelo! Escribe tu solución y pulsa ENVIAR para atacar.',
+  'Tus 2 ejemplos pasan. Lía aún tiene 5 defensas ocultas… ¡Pulsa ENVIAR!',
+  '¡Golpe crítico! 5/5 casos superados en 48 ms. Las defensas de Lía caen.'
+];
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { lang: 'py', phase: 0, hints: 3, hint: false, codes: { py: LANGS.py.code, cpp: LANGS.cpp.code, java: LANGS.java.code } };
+  }
+  renderVals() {
+    var self = this, s = this.state, L = LANGS[s.lang], code = s.codes[s.lang];
+    var n = code.split('\n').length, nums = [];
+    for (var i = 1; i <= n; i++) nums.push(i);
+    var hp = s.phase === 2 ? 0 : 5;
+    return {
+      compSprite: L.sprite, fileName: L.file, code: code, lineNums: nums.join('\n'),
+      onCode: function (e) { var c = Object.assign({}, s.codes); c[s.lang] = e.target.value; self.setState({ codes: c }); },
+      tabs: ORDER.map(function (k) {
+        var on = k === s.lang, T = LANGS[k];
+        return { label: T.label, aria: on ? 'true' : 'false', bg: on ? T.bg : '#fbf7ea', fg: on ? T.fg : '#1c1a2b', pick: function () { self.setState({ lang: k }); } };
+      }),
+      tests: [1, 2, 3, 4, 5].map(function (t) {
+        var st = s.phase === 2 || (s.phase === 1 && t <= 2) ? 'ok' : (s.phase === 1 ? 'hidden' : 'idle');
+        return { icon: st === 'ok' ? '✓' : (st === 'hidden' ? '?' : '·'), label: t <= 2 ? 'EJ ' + t : 'OCULTO', bg: st === 'ok' ? '#6cc04a' : (st === 'hidden' ? '#f3ead0' : '#e2ddd0') };
+      }),
+      hpPct: hp * 20, hpText: hp + ' / 5', hpColor: '#6cc04a',
+      liaAnim: s.phase === 2 ? '' : 'bob', liaOpacity: s.phase === 2 ? 0.45 : 1,
+      pips: [0, 1, 2].map(function (i) { return { bg: i < s.hints ? '#7fd3e8' : '#4a4560' }; }),
+      hint: s.hint,
+      log: LOG[s.phase],
+      won: s.phase === 2,
+      run: function () { self.setState({ phase: Math.max(s.phase, 1) }); },
+      submit: function () { self.setState({ phase: 2 }); },
+      askHint: function () { if (!s.hint && s.hints > 0) self.setState({ hint: true, hints: s.hints - 1 }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

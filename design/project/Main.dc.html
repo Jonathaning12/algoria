@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Algoria · Sistema visual</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Pixelify+Sans:wght@400;600&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f3ead0}
+a{color:#24428c}a:hover{color:#1c1a2b}
+.px{font-family:'Press Start 2P',monospace}
+.box{background:#fbf7ea;border:4px solid #1c1a2b;box-shadow:inset 0 0 0 4px #fbf7ea,inset 0 0 0 7px #1c1a2b;clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
+.btn{font-family:'Press Start 2P',monospace;font-size:12px;line-height:1;padding:14px 18px;min-height:44px;border:4px solid #1c1a2b;box-shadow:0 4px 0 #1c1a2b;cursor:pointer;color:#1c1a2b}
+.blink{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+</style>
+</helmet>
+<div style="font-family: 'Pixelify Sans', sans-serif; color: #1c1a2b; background: #f3ead0; min-height: 1500px">
+
+  <header style="background: #1e1b33; color: #fbf7ea; padding: 48px 24px 0">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-end; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 16px; flex: 1 1 420px; padding-bottom: 32px">
+        <p class="px" style="margin: 0; font-size: 12px; color: #7fd3e8; letter-spacing: 2px">CODE QUEST · BOCETOS v0.1</p>
+        <h1 class="px" style="margin: 0; font-size: 56px; line-height: 1.1; color: #f6c945; text-shadow: 6px 6px 0 #9c2b2b">ALGORIA</h1>
+        <p style="margin: 0; font-size: 24px; line-height: 1.35; max-width: 560px">Aprende programación competitiva recorriendo un mundo. Cada problema es un personaje, cada etapa una región.</p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; background: #6cc04a; padding: 16px 24px 0; border: 4px solid #1c1a2b; border-bottom: 0">
+        <dc-import name="Sprite" sprite="prof" size="80" hint-size="80px,80px"></dc-import>
+        <dc-import name="Sprite" sprite="hero_down" size="96" hint-size="96px,96px"></dc-import>
+        <dc-import name="Sprite" sprite="pyxi" size="64" hint-size="64px,64px"></dc-import>
+        <dc-import name="Sprite" sprite="ceeplus" size="64" hint-size="64px,64px"></dc-import>
+        <dc-import name="Sprite" sprite="javo" size="64" hint-size="64px,64px"></dc-import>
+        <dc-import name="Sprite" sprite="bug" size="56" hint-size="56px,56px"></dc-import>
+      </div>
+    </div>
+  </header>
+  <div style="height: 12px; background: #2f7a3a; border-top: 4px solid #1c1a2b; border-bottom: 4px solid #1c1a2b"></div>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 48px 24px 64px; display: flex; flex-direction: column; gap: 56px">
+
+    <section style="display: flex; flex-direction: column; gap: 20px">
+      <h2 class="px" style="margin: 0; font-size: 16px">01 · PALETA</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px">
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #1c1a2b"></div><strong class="px" style="font-size: 10px">TINTA</strong><span style="font-size: 16px">#1C1A2B · contornos, texto</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #1e1b33; outline: 2px solid #1c1a2b"></div><strong class="px" style="font-size: 10px">NOCHE</strong><span style="font-size: 16px">#1E1B33 · fondos de pantalla</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #fbf7ea; outline: 2px solid #1c1a2b; outline-offset: -2px"></div><strong class="px" style="font-size: 10px">PAPEL</strong><span style="font-size: 16px">#FBF7EA · cajas de diálogo</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #6cc04a"></div><strong class="px" style="font-size: 10px">HIERBA</strong><span style="font-size: 16px">#6CC04A · mapa, éxito</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #2f7a3a"></div><strong class="px" style="font-size: 10px">BOSQUE</strong><span style="font-size: 16px">#2F7A3A · sombras verdes</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #7fd3e8"></div><strong class="px" style="font-size: 10px">AGUA</strong><span style="font-size: 16px">#7FD3E8 · cielo, info</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #e0483e"></div><strong class="px" style="font-size: 10px">GORRA</strong><span style="font-size: 16px">#E0483E · error, peligro</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #f6c945"></div><strong class="px" style="font-size: 10px">ORO</strong><span style="font-size: 16px">#F6C945 · acción principal, XP</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #3f74d8"></div><strong class="px" style="font-size: 10px">PYTHON</strong><span style="font-size: 16px">#3F74D8 · color de Pyxi</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #3a8fb5"></div><strong class="px" style="font-size: 10px">C++</strong><span style="font-size: 16px">#3A8FB5 · color de Ceeplus</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #f08a3c"></div><strong class="px" style="font-size: 10px">JAVA</strong><span style="font-size: 16px">#F08A3C · color de Javo</span></div>
+        <div class="box" style="padding: 12px; display: flex; flex-direction: column; gap: 8px"><div style="height: 64px; background: #9b6fd6"></div><strong class="px" style="font-size: 10px">BUG</strong><span style="font-size: 16px">#9B6FD6 · rivales, retos</span></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 20px">
+      <h2 class="px" style="margin: 0; font-size: 16px">02 · TIPOGRAFÍA</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px">
+        <div class="box" style="padding: 24px; display: flex; flex-direction: column; gap: 12px">
+          <span class="px" style="font-size: 10px; color: #4a4560">TÍTULOS · BOTONES · HUD</span>
+          <span class="px" style="font-size: 22px; line-height: 1.4">¡NIVEL 5!</span>
+          <span style="font-size: 18px">Press Start 2P · 10–56 px · siempre en mayúsculas</span>
+        </div>
+        <div class="box" style="padding: 24px; display: flex; flex-direction: column; gap: 12px">
+          <span class="px" style="font-size: 10px; color: #4a4560">DIÁLOGOS · LECCIONES</span>
+          <span style="font-size: 26px; line-height: 1.3">¡Hola, viajero! Hoy aprenderás a decidir con if.</span>
+          <span style="font-size: 18px">Pixelify Sans · 18–28 px · lectura cómoda</span>
+        </div>
+        <div class="box" style="padding: 24px; display: flex; flex-direction: column; gap: 12px">
+          <span class="px" style="font-size: 10px; color: #4a4560">CÓDIGO</span>
+          <code style="font-family: 'JetBrains Mono', monospace; font-size: 18px; background: #1c1a2b; color: #fbf7ea; padding: 12px; white-space: pre">if n % 2 == 0:
+    print("PAR")</code>
+          <span style="font-size: 18px">JetBrains Mono · 14–18 px</span>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 20px">
+      <h2 class="px" style="margin: 0; font-size: 16px">03 · COMPONENTES</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; align-items: start">
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">CAJA DE DIÁLOGO</span>
+          <div style="position: relative; padding-top: 18px">
+            <span class="px" style="position: absolute; top: 0; left: 20px; z-index: 1; background: #f6c945; border: 4px solid #1c1a2b; padding: 8px 12px; font-size: 10px">PROF. BIT</span>
+            <div class="box" style="padding: 28px 28px 22px; font-size: 24px; line-height: 1.35; position: relative">
+              Todo programa empieza con una línea. ¿Escribimos la tuya?
+              <span class="blink" style="position: absolute; right: 22px; bottom: 14px; font-size: 18px; color: #e0483e">▼</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">MENÚ START</span>
+          <nav class="box" aria-label="Menú del juego" style="padding: 20px 24px; width: 260px">
+            <ul class="px" style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px">
+              <li><a href="#" style="display: flex; gap: 10px; align-items: center; min-height: 36px; color: #1c1a2b; text-decoration: none"><span style="color: #e0483e">▸</span>MAPA</a></li>
+              <li><a href="#" style="display: flex; gap: 10px; align-items: center; min-height: 36px; color: #1c1a2b; text-decoration: none; padding-left: 22px">COMPAÑEROS</a></li>
+              <li><a href="#" style="display: flex; gap: 10px; align-items: center; min-height: 36px; color: #1c1a2b; text-decoration: none; padding-left: 22px">LIBRETA DE TIPS</a></li>
+              <li><a href="#" style="display: flex; gap: 10px; align-items: center; min-height: 36px; color: #1c1a2b; text-decoration: none; padding-left: 22px">INSIGNIAS</a></li>
+              <li><a href="#" style="display: flex; gap: 10px; align-items: center; min-height: 36px; color: #1c1a2b; text-decoration: none; padding-left: 22px">PERFIL</a></li>
+              <li><a href="#" style="display: flex; gap: 10px; align-items: center; min-height: 36px; color: #1c1a2b; text-decoration: none; padding-left: 22px">GUARDAR</a></li>
+            </ul>
+          </nav>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">BOTONES</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
+            <button class="btn" type="button" style="background: #f6c945">A · ¡ACEPTO!</button>
+            <button class="btn" type="button" style="background: #fbf7ea">B · VOLVER</button>
+            <button class="btn" type="button" style="background: #6cc04a">ENVIAR</button>
+            <button class="btn" type="button" disabled style="background: #c3c7d4; color: #4a4560; box-shadow: none; cursor: not-allowed">BLOQUEADO</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">BARRAS: DEFENSA DEL RETO Y XP</span>
+          <div class="box" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; justify-content: space-between; align-items: baseline"><strong class="px" style="font-size: 12px">LÍA</strong><span class="px" style="font-size: 10px">Nv 5</span></div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <span class="px" style="font-size: 9px; background: #1c1a2b; color: #f6c945; padding: 4px 6px">TESTS</span>
+              <div style="flex: 1; height: 14px; border: 3px solid #1c1a2b; background: #4a4560"><div style="width: 60%; height: 100%; background: #6cc04a"></div></div>
+            </div>
+            <span class="px" style="font-size: 10px; align-self: flex-end">3 / 5</span>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <span class="px" style="font-size: 9px; background: #1c1a2b; color: #7fd3e8; padding: 4px 6px">XP</span>
+              <div style="flex: 1; height: 10px; border: 3px solid #1c1a2b; background: #fbf7ea"><div style="width: 68%; height: 100%; background: #3f74d8"></div></div>
+            </div>
+            <span style="font-size: 18px; align-self: flex-end">340 / 500 para Nv 6</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">SELECTOR DE LENGUAJE</span>
+          <div role="radiogroup" aria-label="Lenguaje" style="display: flex; flex-wrap: wrap; gap: 12px">
+            <button type="button" role="radio" aria-checked="true" class="px" style="display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 6px 14px 6px 6px; background: #3f74d8; color: #fbf7ea; border: 4px solid #1c1a2b; box-shadow: 0 4px 0 #1c1a2b; cursor: pointer"><dc-import name="Sprite" sprite="pyxi" size="32" hint-size="32px,32px"></dc-import>PYTHON</button>
+            <button type="button" role="radio" aria-checked="false" class="px" style="display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 6px 14px 6px 6px; background: #fbf7ea; color: #1c1a2b; border: 4px solid #1c1a2b; cursor: pointer"><dc-import name="Sprite" sprite="ceeplus" size="32" hint-size="32px,32px"></dc-import>C++</button>
+            <button type="button" role="radio" aria-checked="false" class="px" style="display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 6px 14px 6px 6px; background: #fbf7ea; color: #1c1a2b; border: 4px solid #1c1a2b; cursor: pointer"><dc-import name="Sprite" sprite="javo" size="32" hint-size="32px,32px"></dc-import>JAVA</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">AVISO: TIP DESBLOQUEADO</span>
+          <div class="box" role="status" style="padding: 16px 20px; display: flex; gap: 16px; align-items: center; background: #fbf7ea">
+            <div style="background: #7fd3e8; border: 3px solid #1c1a2b; padding: 4px; display: flex"><dc-import name="Sprite" sprite="pyxi" size="48" hint-size="48px,48px"></dc-import></div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <strong class="px" style="font-size: 10px; color: #9c2b2b">¡TIP NUEVO!</strong>
+              <span style="font-size: 20px; line-height: 1.25">Usa <code style="font-family: 'JetBrains Mono', monospace; background: #1c1a2b; color: #f6c945; padding: 0 6px">#</code> para escribir comentarios en Python.</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">NODO DE NIVEL</span>
+          <div style="display: flex; gap: 0; align-items: center; flex-wrap: wrap">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><span class="px" style="width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: #6cc04a; border: 4px solid #1c1a2b; font-size: 14px">✓</span><span class="px" style="font-size: 9px">HECHO</span></div>
+            <div style="width: 32px; height: 6px; background: #1c1a2b; margin-bottom: 22px"></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><span class="px" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f6c945; border: 4px solid #1c1a2b; box-shadow: 0 0 0 4px #fbf7ea, 0 0 0 8px #e0483e; font-size: 16px">5</span><span class="px" style="font-size: 9px">ACTUAL</span></div>
+            <div style="width: 32px; height: 6px; background: #7d8399; margin-bottom: 22px"></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><span class="px" style="width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: #c3c7d4; border: 4px dashed #4a4560; color: #4a4560; font-size: 14px">6</span><span class="px" style="font-size: 9px">BLOQUEADO</span></div>
+            <div style="width: 32px; height: 6px; background: #7d8399; margin-bottom: 22px"></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><span class="px" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #9b6fd6; border: 4px solid #1c1a2b; color: #fbf7ea; font-size: 11px">GIM</span><span class="px" style="font-size: 9px">Nv 10</span></div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span class="px" style="font-size: 10px; color: #4a4560">INSIGNIAS DE ETAPA</span>
+          <div class="box" style="padding: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><svg width="40" height="40" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1c1a2b" d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"></path><path fill="#6cc04a" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"></path><path fill="#a8e06a" d="M4 3h2v2h-2z"></path></svg><span class="px" style="font-size: 8px">SEMILLA</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><svg width="40" height="40" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1c1a2b" d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"></path><path fill="#2f7a3a" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"></path><path fill="#a8e06a" d="M4 2h2v1h1v2h-1v2h-2v-2h-1v-2h1z"></path></svg><span class="px" style="font-size: 8px">HOJA</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><svg width="40" height="40" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1c1a2b" d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"></path><path fill="#7d8399" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"></path><path fill="#f6c945" d="M3 3h4v4h-4zM4 4v2h2v-2z"></path></svg><span class="px" style="font-size: 8px">ESPIRAL</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.45"><svg width="40" height="40" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1c1a2b" d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"></path><path fill="#3a8fb5" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"></path></svg><span class="px" style="font-size: 8px">ANCLA</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.45"><svg width="40" height="40" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1c1a2b" d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"></path><path fill="#e0483e" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"></path></svg><span class="px" style="font-size: 8px">CUMBRE</span></div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0.45"><svg width="40" height="40" viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#1c1a2b" d="M3 0h4v1h2v2h1v4h-1v2h-2v1h-4v-1h-2v-2h-1v-4h1v-2h2z"></path><path fill="#9b6fd6" d="M3 1h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"></path></svg><span class="px" style="font-size: 8px">TORRE</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

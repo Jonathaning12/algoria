@@ -1,0 +1,111 @@
+/* Tokens y utilidades del sistema visual (ver design/project/Main.dc.html). */
+:root {
+  --ink: #1c1a2b;
+  --night: #1e1b33;
+  --paper: #fbf7ea;
+  --parchment: #f3ead0;
+  --grass: #6cc04a;
+  --forest: #2f7a3a;
+  --water: #7fd3e8;
+  --red: #e0483e;
+  --red-dark: #9c2b2b;
+  --gold: #f6c945;
+  --python: #3f74d8;
+  --python-dark: #24428c;
+  --cpp: #3a8fb5;
+  --java: #f08a3c;
+  --bug: #9b6fd6;
+  --slate: #4a4560;
+  --gray: #c3c7d4;
+  --gray-dark: #7d8399;
+
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-body: 'Pixelify Sans', system-ui, sans-serif;
+  --font-code: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; }
+code, pre { font-family: var(--font-code); }
+
+.px { font-family: var(--font-pixel); line-height: 1.4; }
+
+/* Caja con doble borde y esquinas pixeladas. */
+.box {
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  box-shadow: inset 0 0 0 4px var(--paper), inset 0 0 0 7px var(--ink);
+  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px);
+}
+
+.btn {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  line-height: 1;
+  min-height: 44px;
+  padding: 14px 18px;
+  border: 4px solid var(--ink);
+  box-shadow: 0 4px 0 var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.btn:disabled { background: var(--gray); color: var(--slate); box-shadow: none; cursor: not-allowed; }
+.btn--gold { background: var(--gold); }
+.btn--green { background: var(--grass); }
+.btn--blue { background: var(--water); }
+.btn--gray { background: var(--gray); }
+
+:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
+
+.blink { animation: blink 1s steps(2, start) infinite; }
+@keyframes blink { to { visibility: hidden; } }
+
+.bob { animation: bob 0.9s steps(2, end) infinite; }
+@keyframes bob { 50% { transform: translateY(-5px); } }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Controles de audio flotantes (abajo a la derecha). */
+.audio-ctl {
+  position: fixed; right: 12px; bottom: 12px; z-index: 50;
+  display: flex; gap: 6px; align-items: flex-end;
+}
+.audio-ctl__btn {
+  width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--paper); color: var(--ink); border: 3px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink); cursor: pointer; padding: 0;
+}
+.audio-ctl__btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.audio-ctl__btn[aria-pressed='false'] { background: var(--gray); }
+.audio-ctl__panel {
+  position: absolute; right: 0; bottom: 52px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 12px; min-width: 200px;
+}
+.audio-ctl__panel label { display: flex; flex-direction: column; gap: 8px; font-size: 9px; }
+.audio-ctl__panel input[type='range'] { width: 100%; accent-color: var(--python); }
+
+@media (prefers-reduced-motion: reduce) {
+  .blink, .bob { animation: none; }
+}

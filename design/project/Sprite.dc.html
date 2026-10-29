@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Sprite</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<svg viewBox="0 0 16 16" width="{{size}}" height="{{size}}" shape-rendering="crispEdges" aria-hidden="true" style="display: block">
+<g transform="{{tf}}">
+<path fill="{{p0.fill}}" d="{{p0.d}}"></path>
+<path fill="{{p1.fill}}" d="{{p1.d}}"></path>
+<path fill="{{p2.fill}}" d="{{p2.d}}"></path>
+<path fill="{{p3.fill}}" d="{{p3.d}}"></path>
+<path fill="{{p4.fill}}" d="{{p4.d}}"></path>
+<path fill="{{p5.fill}}" d="{{p5.d}}"></path>
+<path fill="{{p6.fill}}" d="{{p6.d}}"></path>
+<path fill="{{p7.fill}}" d="{{p7.d}}"></path>
+<path fill="{{p8.fill}}" d="{{p8.d}}"></path>
+<path fill="{{p9.fill}}" d="{{p9.d}}"></path>
+<path fill="{{p10.fill}}" d="{{p10.d}}"></path>
+<path fill="{{p11.fill}}" d="{{p11.d}}"></path>
+</g>
+</svg>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"sprite":{"editor":"enum","options":["hero_down","hero_up","hero_side","pyxi","ceeplus","javo","prof","lia","tomas","bug","grass","tallgrass","path","water","tree","flower","sign","house","rock"],"default":"hero_down"},"size":{"editor":"int","default":64,"min":16,"max":256},"flip":{"editor":"boolean","default":false},"$preview":{"width":64,"height":64}}'>
+var PAL = {
+  k:'#1c1a2b', w:'#fbf7ea', s:'#f4c79a', S:'#d9976a', h:'#5a3a26', H:'#2e2033',
+  r:'#e0483e', R:'#9c2b2b', b:'#3f74d8', B:'#24428c', g:'#6cc04a', G:'#2f7a3a',
+  l:'#a8e06a', y:'#f6c945', Y:'#c58a1e', o:'#f08a3c', c:'#7fd3e8', C:'#3a8fb5',
+  p:'#4a4560', e:'#c3c7d4', E:'#7d8399', n:'#b07a4a', N:'#6e4527', t:'#ead9a6',
+  T:'#cdb67a', v:'#9b6fd6', V:'#5e3f96'
+};
+// Rows of 8 chars are mirrored to 16 (symmetric sprites); rows of 16 are used as-is.
+var SPR = {
+  hero_down: [".....kkk","....krrr","...krrrw","...krrrr","..kRRRRR","..khssss","..khskss","..khssss","...kSsss","...kkbbb","..kbbbbb",".ksBbbbb",".kskbbbb","..kkpppp","...kppk.","...kkkk."],
+  hero_up: [".....kkk","....krrr","...krrrr","...krrrr","..kRRRRR","..khhhhh","..khhhhh","..khhhhh","...khhhh","...kkbbb","..kbbbbb",".ksBbbbb",".kskbbbb","..kkpppp","...kppk.","...kkkk."],
+  hero_side: ["......kkkkk.....",".....krrrrrk....","....krrrrrrrk...","....krrrrrrrk...","....kRRRRRRRRRk.","....khhssssk....","....khhssksk....","....khssssssk...",".....kSsssk.....",".....kkbbk......","....kbbbbbk.....","....kbBbbsk.....","....kbBbbk......",".....kpppk......",".....kpkpk......",".....kkkkk......"],
+  pyxi: ["........","........",".....kkk","....kbbb","...kbbbb","...kbwkb","...kbbbb","....kbbb",".....kkr","..kkyyyy",".kyyYbbb",".kybbbbb",".kbbbBBB",".kyyyyyy","..kkkkkk","........"],
+  ceeplus: ["....y...","....k...","..kkkkkk",".kCCCCCC",".kCkkkkk",".kCkcwkk",".kCkkkkk",".kCCCCCC","..kkkkkk","..keeeee","..keEeye","kekeeeee","kEkeeeee","..kkkkkk","...kek..","...kkk.."],
+  javo: ["....e...",".....e..","....e...","..kkkkkk",".kNNNNNN",".kwwwwww",".kwwkwww",".kwwkwww",".kwowwww",".kwwwwkk",".koooooo",".kwwwwww","..kwwwww","...kkkkk","..kNNNNN","..kkkkkk"],
+  prof: ["........",".....kkk","....keee","...keeee","...keeee","..kessss","..kskckk","..ksssss","...ksEEE","....kwww","...kwwwr","..kwwwwr","..kswwww","...kwwww","...kppk.","...kkkk."],
+  lia: ["........",".....kkk","....kHHH","...kHHHH","..kHHHHH","..kHssss","..kHskss","..kHssss","..kHkSss","..kHkvvv","..kkvvvv","..ksvvvv","..kseeEE","...keeee","...kppk.","...kkkk."],
+  tomas: [".....kkk","....kHHH","...kHHHH","..kHHHHH","..kHHHHH","..kHssss","..kHskss","..kHssss","...kSsss","...kkggg","..kggggg",".ksGgggg",".kskgggg","..kkpppp","...kppk.","...kkkk."],
+  bug: ["..k.....","...k....","....kkkk","...kvvvv","..kvrrvv","..kvvvvv",".kkkkkkk","kvkvvvvk",".kvvwvvk","kvkvvvvk",".kvvvvvk","kvkvvvvk","..kvvvvk","...kkkkk","..k.k...","........"],
+  grass: ["gggggggg","ggGggggg","gGgGgggg","gggggggg","gggggggg","gggggGgg","ggggGgGg","gggggggg","gggggggg","ggGggggg","gGgGgggg","gggggggg","gggggggg","gggggGgg","ggggGgGg","gggggggg"],
+  tallgrass: ["GGGGGGGG","GlGGGGlG","lGlGGlGl","GGGGGGGG","GGGlGGGG","GGlGlGGG","GGGGGGGG","GGGGGGGG","GGGGGGGG","GlGGGGlG","lGlGGlGl","GGGGGGGG","GGGlGGGG","GGlGlGGG","GGGGGGGG","GGGGGGGG"],
+  path: ["tttttttt","tttTtttt","tttttttt","tTtttttt","tttttttT","tttttttt","ttttTttt","tttttttt","tttttttt","tttTtttt","tttttttt","tTtttttt","tttttttT","tttttttt","ttttTttt","tttttttt"],
+  water: ["cccccccc","ccCCcccc","cCccCccc","cccccccc","cccccccc","ccccccCC","ccccCCcc","cccccccc","cccccccc","ccCCcccc","cCccCccc","cccccccc","cccccccc","ccccccCC","ccccCCcc","cccccccc"],
+  tree: [".....kkk","...kkGGG","..kGGgGG",".kGgggGG",".kGgglgG","kGGggggG","kGgggGgG","kGGgGGGG","kGGGGGGG",".kGGGGGG","..kkGGGG","....kkkk","......kN","......kN",".....kkN","......kk"],
+  flower: ["........","........","..k.....",".krk....","kryrk...",".krk....","..G.....","..G.....","........","........",".....k..","....krk.","...kryrk","....krk.",".....G..","........"],
+  sign: ["........","........","..kkkkkk",".knnnnnn",".knNNNNN",".knnnnnn",".knNNNNN",".knnnnnn","..kkkkkk","......kN","......kN","......kN",".....kkN","........","........","........"],
+  house: ["......kk",".....krr","....krrr","...krrRr","..krrRrr",".krrRrrr","kRRRRRRR","kkkkkkkk",".kwwwwww",".kwccwww",".kwccwkN",".kwwwwkN",".kwwwwkN",".kwwwwkN",".kkkkkkk","........"],
+  rock: ["........","........","........","........","........","....kkkk","...keeee","..keeeww","..keewee","..keeeee",".keEeeee",".kEEeeee",".kEEEEEE","..kkkkkk","........","........"]
+};
+var CACHE = {};
+function build(id) {
+  if (CACHE[id]) return CACHE[id];
+  var rows = SPR[id] || SPR.hero_down;
+  var d = {}, keys = [];
+  rows.forEach(function (row, y) {
+    var full = row.length === 8 ? row + row.split('').reverse().join('') : row;
+    var x = 0;
+    while (x < 16) {
+      var ch = full.charAt(x), n = 1;
+      while (x + n < 16 && full.charAt(x + n) === ch) n++;
+      if (ch && ch !== '.' && PAL[ch]) {
+        if (!d[ch]) { d[ch] = ''; keys.push(ch); }
+        d[ch] += 'M' + x + ' ' + y + 'h' + n + 'v1h-' + n + 'z';
+      }
+      x += n;
+    }
+  });
+  var out = {};
+  for (var i = 0; i < 12; i++) {
+    var ch = keys[i];
+    out['p' + i] = ch ? { fill: PAL[ch], d: d[ch] } : { fill: 'none', d: 'M0 0' };
+  }
+  CACHE[id] = out;
+  return out;
+}
+class Component extends DCLogic {
+  renderVals() {
+    var paths = build(this.props.sprite ?? 'hero_down');
+    var vals = Object.assign({}, paths);
+    vals.size = this.props.size ?? 64;
+    vals.tf = this.props.flip ? 'translate(16 0) scale(-1 1)' : '';
+    return vals;
+  }
+}
+</script>
+</body>
+</html>
